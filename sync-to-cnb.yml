@@ -1,0 +1,85 @@
+# =============================================================================
+# GitHub → CNB 仓库同步模板
+#
+# 来源：Tencent/cherry-markdown 的 .github/workflows/sync-cnb.yml（腾讯官方）
+#       + CNB 官方插件 cnb.cool/cnb/plugins/tencentcom/git-sync 的 README
+# 实测：runner 能 git ls-remote / clone cnb.cool，docker pull tencentcom/git-sync 成功
+#
+# 使用前改 3 处：
+#   1. TARGET_REPO —— 你的 CNB 仓库，注意是三级路径 组织/仓库组/仓库
+#   2. secrets.CNB_TOKEN —— 在 GitHub 仓库 Settings → Secrets 里创建
+#      CNB 令牌在 cnb.cool 账号设置里生成，用户名固定写 cnb
+#   3. REPO_GUARD —— 改成你的 GitHub 仓库全名，防 fork 误触发
+# =============================================================================
+
+name: 'Sync: CNB'
+
+on:
+  - push
+  # 如只想手动触发，改成： on: workflow_dispatch
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false   # 同步中途别取消，避免目标仓库半截状态
+
+jobs:
+  sync-push:
+    if: github.repository == 'OWNER/REPO'      # ← 改成你的仓库
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                        # 全历史，缺对象会 push 失败
+
+      - name: Sync to CNB Repository
+        uses: docker://tencentcom/git-sync
+        env:
+          PLUGIN_TARGET_URL: 'https://cnb.cool/ORG/GROUP/REPO.git'   # ← 改成你的 CNB 仓库（三级路径）
+          PLUGIN_AUTH_TYPE: 'https'
+          PLUGIN_USERNAME: 'cnb'                # CNB 固定用户名
+          PLUGIN_PASSWORD: ${{ secrets.CNB_TOKEN }}
+          # 首次同步可开强推；稳定后建议删掉这行，或改用 rebase 模式
+          PLUGIN_FORCE: 'true'
+          # 可选：
+          # PLUGIN_BRANCH: 'main'              # 只同步指定分支（不设=全部分支）
+          # PLUGIN_PUSH_TAGS: 'true'          # 同步标签
+          # PLUGIN_SYNC_MODE: 'rebase'        # 目标仓库有独立提交时用，避免强推覆盖
+          # PLUGIN_GIT_USER: 'sync-bot'
+          # PLUGIN_GIT_EMAIL: 'sync-bot@example.com'
+
+# -----------------------------------------------------------------------------
+# 附：反向（CNB → GitHub）与定时拉取，写在 CNB 仓库根目录的 .cnb.yml 里
+# 同一个镜像，但用 CNB 原生 settings 语法（无 PLUGIN_ 前缀）
+#
+# '**':
+#   push:
+#     - imports:
+#         - https://cnb.cool/ORG/GROUP/secret-repo/-/blob/main/secret.yml
+#       stages:
+#         - name: sync to github
+#           image: tencentcom/git-sync
+#           settings:
+#             target_url: https://github.com/OWNER/REPO.git
+#             auth_type: https
+#             username: ${GIT_USERNAME}
+#             password: ${GIT_ACCESS_TOKEN}
+#             insecure_skip_verify: true
+#             timeout: 300
+#
+# main:
+#   "crontab: 0 1 * * *":        # 每天 1 点从 GitHub 拉取
+#     - name: sync from github
+#       stages:
+#         - name: sync from github
+#           image: tencentcom/git-sync
+#           settings:
+#             target_url: https://github.com/OWNER/REPO.git
+#             auth_type: https
+#             username: ${GIT_USERNAME}
+#             password: ${GIT_ACCESS_TOKEN}
+#             sync_mode: pull
+# -----------------------------------------------------------------------------
