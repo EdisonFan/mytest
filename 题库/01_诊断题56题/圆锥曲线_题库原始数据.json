@@ -1,0 +1,980 @@
+[
+  {
+    "知识点": "椭圆的定义",
+    "知识点ID": "cnm_h183",
+    "id": "cnm_h183_q1",
+    "topicId": "cnm_h183",
+    "difficulty": "basic",
+    "type": "choice",
+    "prompt": "椭圆定义里，动点到两个焦点的距离有什么关系？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "和等于一个大于焦距的常数"
+      },
+      {
+        "key": "B",
+        "text": "差等于常数"
+      },
+      {
+        "key": "C",
+        "text": "积等于常数"
+      },
+      {
+        "key": "D",
+        "text": "和等于焦距"
+      }
+    ],
+    "answer": "A",
+    "explanation": "和为常数，并且常数要大于两焦点之间的距离，轨迹才是椭圆。",
+    "verify": "\"和等于一个大于焦距的常数\""
+  },
+  {
+    "知识点": "椭圆的定义",
+    "知识点ID": "cnm_h183",
+    "id": "cnm_h183_q2",
+    "topicId": "cnm_h183",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆上任意一点到两个焦点的距离之和是 10。这个和等于 2a 时，a 是多少？",
+    "answer": "5",
+    "explanation": "2a=10，a=5。",
+    "verify": "5"
+  },
+  {
+    "知识点": "椭圆的定义",
+    "知识点ID": "cnm_h183",
+    "id": "cnm_h183_q3",
+    "topicId": "cnm_h183",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "若距离之和等于两焦点间的距离，轨迹是什么？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "椭圆"
+      },
+      {
+        "key": "B",
+        "text": "双曲线"
+      },
+      {
+        "key": "C",
+        "text": "两焦点之间的线段"
+      },
+      {
+        "key": "D",
+        "text": "整个平面"
+      }
+    ],
+    "answer": "C",
+    "explanation": "和等于焦距时，点只能落在两焦点的连线段上，不能形成椭圆。",
+    "verify": "\"两焦点之间的线段\""
+  },
+  {
+    "知识点": "椭圆的定义",
+    "知识点ID": "cnm_h183",
+    "id": "cnm_h183_q4",
+    "topicId": "cnm_h183",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "焦点在 x 轴上，a=5。椭圆上的点到两焦点的距离之和是多少？",
+    "answer": "10",
+    "explanation": "由定义，距离之和是 2a=10。",
+    "verify": "2*5"
+  },
+  {
+    "知识点": "椭圆的标准方程",
+    "知识点ID": "cnm_h184",
+    "id": "cnm_h184_q1",
+    "topicId": "cnm_h184",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆 x²/25+y²/16=1 中，a 等于多少？",
+    "answer": "5",
+    "explanation": "x² 下面是 a²=25，a=5。",
+    "verify": "isqrt(25)"
+  },
+  {
+    "知识点": "椭圆的标准方程",
+    "知识点ID": "cnm_h184",
+    "id": "cnm_h184_q2",
+    "topicId": "cnm_h184",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆 x²/25+y²/16=1 中，b 等于多少？",
+    "answer": "4",
+    "explanation": "y² 下面是 b²=16，b=4。",
+    "verify": "isqrt(16)"
+  },
+  {
+    "知识点": "椭圆的标准方程",
+    "知识点ID": "cnm_h184",
+    "id": "cnm_h184_q3",
+    "topicId": "cnm_h184",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "a=3，b=2，焦点在 x 轴上。标准方程中 a² 是多少？",
+    "answer": "9",
+    "explanation": "方程是 x²/9+y²/4=1，a²=9。",
+    "verify": "3*3"
+  },
+  {
+    "知识点": "椭圆的标准方程",
+    "知识点ID": "cnm_h184",
+    "id": "cnm_h184_q4",
+    "topicId": "cnm_h184",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "方程 x²/9+y²/4=1 表示的曲线是？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "焦点在 x 轴上的椭圆"
+      },
+      {
+        "key": "B",
+        "text": "焦点在 y 轴上的椭圆"
+      },
+      {
+        "key": "C",
+        "text": "双曲线"
+      },
+      {
+        "key": "D",
+        "text": "抛物线"
+      }
+    ],
+    "answer": "A",
+    "explanation": "两项都是正的且等于 1，x² 的分母更大，焦点在 x 轴上。",
+    "verify": "\"焦点在 x 轴上的椭圆\""
+  },
+  {
+    "知识点": "椭圆的 a、b、c 关系",
+    "知识点ID": "cnm_h185",
+    "id": "cnm_h185_q1",
+    "topicId": "cnm_h185",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆 a=5，b=4。c 等于多少？",
+    "answer": "3",
+    "explanation": "c²=a²−b²=25−16=9，c=3。",
+    "verify": "isqrt(25-16)"
+  },
+  {
+    "知识点": "椭圆的 a、b、c 关系",
+    "知识点ID": "cnm_h185",
+    "id": "cnm_h185_q2",
+    "topicId": "cnm_h185",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆 a=5，c=3。离心率是多少？",
+    "answer": "3/5",
+    "explanation": "离心率 e=c/a=3/5。",
+    "verify": "Fraction(3,5)"
+  },
+  {
+    "知识点": "椭圆的 a、b、c 关系",
+    "知识点ID": "cnm_h185",
+    "id": "cnm_h185_q3",
+    "topicId": "cnm_h185",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "椭圆 a=13，b=5。焦距 2c 是多少？",
+    "answer": "24",
+    "explanation": "c²=169−25=144，c=12，焦距是 24。",
+    "verify": "2*isqrt(169-25)"
+  },
+  {
+    "知识点": "椭圆的 a、b、c 关系",
+    "知识点ID": "cnm_h185",
+    "id": "cnm_h185_q4",
+    "topicId": "cnm_h185",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "椭圆离心率的范围是？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "大于 1"
+      },
+      {
+        "key": "B",
+        "text": "大于 0 且小于 1"
+      },
+      {
+        "key": "C",
+        "text": "等于 1"
+      },
+      {
+        "key": "D",
+        "text": "小于 0"
+      }
+    ],
+    "answer": "B",
+    "explanation": "0<c<a，所以 0<e<1。e 越接近 1，椭圆越扁。",
+    "verify": "\"大于 0 且小于 1\""
+  },
+  {
+    "知识点": "椭圆的简单几何性质",
+    "知识点ID": "cnm_h186",
+    "id": "cnm_h186_q1",
+    "topicId": "cnm_h186",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆 x²/25+y²/9=1 的长轴长是多少？",
+    "answer": "10",
+    "explanation": "a=5，长轴长 2a=10。",
+    "verify": "2*5"
+  },
+  {
+    "知识点": "椭圆的简单几何性质",
+    "知识点ID": "cnm_h186",
+    "id": "cnm_h186_q2",
+    "topicId": "cnm_h186",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆 x²/25+y²/9=1 的短轴长是多少？",
+    "answer": "6",
+    "explanation": "b=3，短轴长 2b=6。",
+    "verify": "2*3"
+  },
+  {
+    "知识点": "椭圆的简单几何性质",
+    "知识点ID": "cnm_h186",
+    "id": "cnm_h186_q3",
+    "topicId": "cnm_h186",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "椭圆 x²/25+y²/9=1 上点的横坐标最大是多少？",
+    "answer": "5",
+    "explanation": "x 的范围是 −5 到 5，最大横坐标是 5。",
+    "verify": "5"
+  },
+  {
+    "知识点": "椭圆的简单几何性质",
+    "知识点ID": "cnm_h186",
+    "id": "cnm_h186_q4",
+    "topicId": "cnm_h186",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "焦点在 x 轴上的椭圆，长轴在哪一条直线上？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "y 轴"
+      },
+      {
+        "key": "B",
+        "text": "直线 y=x"
+      },
+      {
+        "key": "C",
+        "text": "x 轴"
+      },
+      {
+        "key": "D",
+        "text": "任意直线"
+      }
+    ],
+    "answer": "C",
+    "explanation": "焦点所在的轴是长轴，这里长轴在 x 轴上。",
+    "verify": "\"x 轴\""
+  },
+  {
+    "知识点": "椭圆的简单应用",
+    "知识点ID": "cnm_h187",
+    "id": "cnm_h187_q1",
+    "topicId": "cnm_h187",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆形跑道可看成椭圆，长半轴 5，短半轴 4。轨道上一点到两个焦点的距离之和是多少？",
+    "answer": "10",
+    "explanation": "定义给出距离之和等于 2a=10。",
+    "verify": "2*5"
+  },
+  {
+    "知识点": "椭圆的简单应用",
+    "知识点ID": "cnm_h187",
+    "id": "cnm_h187_q2",
+    "topicId": "cnm_h187",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "长半轴 5、短半轴 4 的椭圆，焦点到中心的距离是多少？",
+    "answer": "3",
+    "explanation": "c=√(25−16)=3。",
+    "verify": "isqrt(25-16)"
+  },
+  {
+    "知识点": "椭圆的简单应用",
+    "知识点ID": "cnm_h187",
+    "id": "cnm_h187_q3",
+    "topicId": "cnm_h187",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "椭圆镜片 a=10，b=8。离心率的分子 c 是多少？",
+    "answer": "6",
+    "explanation": "c=√(100−64)=√36=6。",
+    "verify": "isqrt(100-64)"
+  },
+  {
+    "知识点": "椭圆的简单应用",
+    "知识点ID": "cnm_h187",
+    "id": "cnm_h187_q4",
+    "topicId": "cnm_h187",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "用椭圆描述行星轨道时，太阳通常放在哪里？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "长轴的端点上"
+      },
+      {
+        "key": "B",
+        "text": "短轴的端点上"
+      },
+      {
+        "key": "C",
+        "text": "椭圆外部"
+      },
+      {
+        "key": "D",
+        "text": "一个焦点上"
+      }
+    ],
+    "answer": "D",
+    "explanation": "这是椭圆定义的一个常见应用：到两焦点距离之和为定值，太阳在其中一个焦点。",
+    "verify": "\"一个焦点上\""
+  },
+  {
+    "知识点": "双曲线的定义",
+    "知识点ID": "cnm_h188",
+    "id": "cnm_h188_q1",
+    "topicId": "cnm_h188",
+    "difficulty": "basic",
+    "type": "choice",
+    "prompt": "双曲线定义比较的是动点到两焦点距离的什么？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "和"
+      },
+      {
+        "key": "B",
+        "text": "差的绝对值"
+      },
+      {
+        "key": "C",
+        "text": "积"
+      },
+      {
+        "key": "D",
+        "text": "商"
+      }
+    ],
+    "answer": "B",
+    "explanation": "双曲线是距离之差的绝对值为常数，椭圆才是距离之和为常数。",
+    "verify": "\"差的绝对值\""
+  },
+  {
+    "知识点": "双曲线的定义",
+    "知识点ID": "cnm_h188",
+    "id": "cnm_h188_q2",
+    "topicId": "cnm_h188",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "双曲线上的点到两焦点距离之差的绝对值是 6。2a=6 时，a 是多少？",
+    "answer": "3",
+    "explanation": "这个常数是 2a，所以 a=3。",
+    "verify": "3"
+  },
+  {
+    "知识点": "双曲线的定义",
+    "知识点ID": "cnm_h188",
+    "id": "cnm_h188_q3",
+    "topicId": "cnm_h188",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "若距离之差的绝对值等于两焦点间的距离，轨迹是什么？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "双曲线"
+      },
+      {
+        "key": "B",
+        "text": "椭圆"
+      },
+      {
+        "key": "C",
+        "text": "一个圆"
+      },
+      {
+        "key": "D",
+        "text": "两条射线"
+      }
+    ],
+    "answer": "D",
+    "explanation": "差的绝对值等于焦距时，点落在两焦点连线的延长线上，是两条射线。",
+    "verify": "\"两条射线\""
+  },
+  {
+    "知识点": "双曲线的定义",
+    "知识点ID": "cnm_h188",
+    "id": "cnm_h188_q4",
+    "topicId": "cnm_h188",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "a=4 的双曲线，定义中的常数是多少？",
+    "answer": "8",
+    "explanation": "常数是 2a=8。",
+    "verify": "2*4"
+  },
+  {
+    "知识点": "双曲线的标准方程",
+    "知识点ID": "cnm_h189",
+    "id": "cnm_h189_q1",
+    "topicId": "cnm_h189",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "双曲线 x²/9−y²/16=1 中，a 等于多少？",
+    "answer": "3",
+    "explanation": "x² 下面是 a²=9，a=3。",
+    "verify": "isqrt(9)"
+  },
+  {
+    "知识点": "双曲线的标准方程",
+    "知识点ID": "cnm_h189",
+    "id": "cnm_h189_q2",
+    "topicId": "cnm_h189",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "双曲线 x²/9−y²/16=1 中，b² 等于多少？",
+    "answer": "16",
+    "explanation": "y² 项的分母是 b²=16。",
+    "verify": "16"
+  },
+  {
+    "知识点": "双曲线的标准方程",
+    "知识点ID": "cnm_h189",
+    "id": "cnm_h189_q3",
+    "topicId": "cnm_h189",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "方程 x²/4−y²/9=1 表示什么曲线？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "焦点在 x 轴上的双曲线"
+      },
+      {
+        "key": "B",
+        "text": "椭圆"
+      },
+      {
+        "key": "C",
+        "text": "焦点在 y 轴上的双曲线"
+      },
+      {
+        "key": "D",
+        "text": "抛物线"
+      }
+    ],
+    "answer": "A",
+    "explanation": "两项相减并且等于 1，x² 在前面，焦点在 x 轴上。",
+    "verify": "\"焦点在 x 轴上的双曲线\""
+  },
+  {
+    "知识点": "双曲线的标准方程",
+    "知识点ID": "cnm_h189",
+    "id": "cnm_h189_q4",
+    "topicId": "cnm_h189",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "a=5，b=12。标准方程里 a² 是多少？",
+    "answer": "25",
+    "explanation": "方程是 x²/25−y²/144=1。",
+    "verify": "25"
+  },
+  {
+    "知识点": "双曲线的简单几何性质",
+    "知识点ID": "cnm_h190",
+    "id": "cnm_h190_q1",
+    "topicId": "cnm_h190",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "双曲线 a=3，b=4。c 等于多少？",
+    "answer": "5",
+    "explanation": "双曲线里 c²=a²+b²=9+16=25，c=5。",
+    "verify": "isqrt(9+16)"
+  },
+  {
+    "知识点": "双曲线的简单几何性质",
+    "知识点ID": "cnm_h190",
+    "id": "cnm_h190_q2",
+    "topicId": "cnm_h190",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "双曲线 a=3，b=4。实轴长是多少？",
+    "answer": "6",
+    "explanation": "实轴长是 2a=6。",
+    "verify": "2*3"
+  },
+  {
+    "知识点": "双曲线的简单几何性质",
+    "知识点ID": "cnm_h190",
+    "id": "cnm_h190_q3",
+    "topicId": "cnm_h190",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "双曲线 a=5，c=13。b² 等于多少？",
+    "answer": "144",
+    "explanation": "b²=c²−a²=169−25=144。",
+    "verify": "13*13-5*5"
+  },
+  {
+    "知识点": "双曲线的简单几何性质",
+    "知识点ID": "cnm_h190",
+    "id": "cnm_h190_q4",
+    "topicId": "cnm_h190",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "双曲线的离心率 c/a 与 1 的大小关系是？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "大于 0 且小于 1"
+      },
+      {
+        "key": "B",
+        "text": "等于 1"
+      },
+      {
+        "key": "C",
+        "text": "大于 1"
+      },
+      {
+        "key": "D",
+        "text": "小于 0"
+      }
+    ],
+    "answer": "C",
+    "explanation": "c²=a²+b²>a²，所以 c>a，离心率大于 1。",
+    "verify": "\"大于 1\""
+  },
+  {
+    "知识点": "双曲线的渐近线",
+    "知识点ID": "cnm_h191",
+    "id": "cnm_h191_q1",
+    "topicId": "cnm_h191",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "双曲线 x²/9−y²/16=1 的一条渐近线斜率的绝对值是多少？",
+    "answer": "4/3",
+    "explanation": "b=4，a=3，斜率的绝对值是 b/a=4/3。",
+    "verify": "Fraction(4,3)"
+  },
+  {
+    "知识点": "双曲线的渐近线",
+    "知识点ID": "cnm_h191",
+    "id": "cnm_h191_q2",
+    "topicId": "cnm_h191",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "a=5，b=5 的双曲线，渐近线斜率的绝对值是多少？",
+    "answer": "1",
+    "explanation": "b/a=1，渐近线是 y=x 和 y=−x。",
+    "verify": "Fraction(5,5)"
+  },
+  {
+    "知识点": "双曲线的渐近线",
+    "知识点ID": "cnm_h191",
+    "id": "cnm_h191_q3",
+    "topicId": "cnm_h191",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "双曲线 x²/a²−y²/b²=1 有几条渐近线？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "1 条"
+      },
+      {
+        "key": "B",
+        "text": "4 条"
+      },
+      {
+        "key": "C",
+        "text": "2 条"
+      },
+      {
+        "key": "D",
+        "text": "没有渐近线"
+      }
+    ],
+    "answer": "C",
+    "explanation": "两条直线 y=±(b/a)x。",
+    "verify": "\"2 条\""
+  },
+  {
+    "知识点": "双曲线的渐近线",
+    "知识点ID": "cnm_h191",
+    "id": "cnm_h191_q4",
+    "topicId": "cnm_h191",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "渐近线为 y=±2x 的双曲线若 a=3，则 b 是多少？",
+    "answer": "6",
+    "explanation": "b/a=2，b=6。",
+    "verify": "6"
+  },
+  {
+    "知识点": "抛物线的定义",
+    "知识点ID": "cnm_h192",
+    "id": "cnm_h192_q1",
+    "topicId": "cnm_h192",
+    "difficulty": "basic",
+    "type": "choice",
+    "prompt": "抛物线定义比较的是哪两个距离？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "到两个焦点的距离之和"
+      },
+      {
+        "key": "B",
+        "text": "到焦点的距离和到准线的距离"
+      },
+      {
+        "key": "C",
+        "text": "到两个焦点的距离之差"
+      },
+      {
+        "key": "D",
+        "text": "到圆心的距离"
+      }
+    ],
+    "answer": "B",
+    "explanation": "抛物线没有两个焦点。它是到焦点和到准线距离相等的点的轨迹。",
+    "verify": "\"到焦点的距离和到准线的距离\""
+  },
+  {
+    "知识点": "抛物线的定义",
+    "知识点ID": "cnm_h192",
+    "id": "cnm_h192_q2",
+    "topicId": "cnm_h192",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "抛物线上一点到焦点的距离是 6。它到准线的距离是多少？",
+    "answer": "6",
+    "explanation": "定义要求这两个距离相等，所以也是 6。",
+    "verify": "6"
+  },
+  {
+    "知识点": "抛物线的定义",
+    "知识点ID": "cnm_h192",
+    "id": "cnm_h192_q3",
+    "topicId": "cnm_h192",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "抛物线的准线是什么图形？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "一个点"
+      },
+      {
+        "key": "B",
+        "text": "一个圆"
+      },
+      {
+        "key": "C",
+        "text": "一条抛物线"
+      },
+      {
+        "key": "D",
+        "text": "一条直线"
+      }
+    ],
+    "answer": "D",
+    "explanation": "准线是定直线，焦点是定点。",
+    "verify": "\"一条直线\""
+  },
+  {
+    "知识点": "抛物线的定义",
+    "知识点ID": "cnm_h192",
+    "id": "cnm_h192_q4",
+    "topicId": "cnm_h192",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "点到焦点的距离是 4，到准线的距离也是 4。这两个距离的差是多少？",
+    "answer": "0",
+    "explanation": "相等，差是 0，这个点可以落在抛物线上。",
+    "verify": "0"
+  },
+  {
+    "知识点": "抛物线的标准方程",
+    "知识点ID": "cnm_h193",
+    "id": "cnm_h193_q1",
+    "topicId": "cnm_h193",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "抛物线 y²=8x。焦点的横坐标是多少？",
+    "answer": "2",
+    "explanation": "2p=8，p=4，焦点是 (p/2，0)=(2，0)。",
+    "verify": "8//4"
+  },
+  {
+    "知识点": "抛物线的标准方程",
+    "知识点ID": "cnm_h193",
+    "id": "cnm_h193_q2",
+    "topicId": "cnm_h193",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "抛物线 y²=4x。方程里的 2p 是多少？",
+    "answer": "4",
+    "explanation": "与 y²=2px 比较，2p=4。",
+    "verify": "4"
+  },
+  {
+    "知识点": "抛物线的标准方程",
+    "知识点ID": "cnm_h193",
+    "id": "cnm_h193_q3",
+    "topicId": "cnm_h193",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "方程 y²=4x 的开口方向是？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "向右"
+      },
+      {
+        "key": "B",
+        "text": "向左"
+      },
+      {
+        "key": "C",
+        "text": "向上"
+      },
+      {
+        "key": "D",
+        "text": "向下"
+      }
+    ],
+    "answer": "A",
+    "explanation": "y² 等于正数乘 x，焦点在 x 轴正半轴，开口向右。",
+    "verify": "\"向右\""
+  },
+  {
+    "知识点": "抛物线的标准方程",
+    "知识点ID": "cnm_h193",
+    "id": "cnm_h193_q4",
+    "topicId": "cnm_h193",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "焦点为 (3，0)、顶点在原点且开口向右的抛物线，2p 等于多少？",
+    "answer": "12",
+    "explanation": "焦点横坐标是 p/2=3，所以 p=6，2p=12，方程是 y²=12x。",
+    "verify": "12"
+  },
+  {
+    "知识点": "抛物线的简单几何性质",
+    "知识点ID": "cnm_h194",
+    "id": "cnm_h194_q1",
+    "topicId": "cnm_h194",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "抛物线 y²=8x 的准线方程中，x 等于多少？",
+    "answer": "-2",
+    "explanation": "p/2=2，准线是 x=−p/2，即 x=−2。",
+    "verify": "-2"
+  },
+  {
+    "知识点": "抛物线的简单几何性质",
+    "知识点ID": "cnm_h194",
+    "id": "cnm_h194_q2",
+    "topicId": "cnm_h194",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "抛物线 y²=4x 上，x 的最小值是多少？",
+    "answer": "0",
+    "explanation": "开口向右，顶点在原点，x≥0，最小值是 0。",
+    "verify": "0"
+  },
+  {
+    "知识点": "抛物线的简单几何性质",
+    "知识点ID": "cnm_h194",
+    "id": "cnm_h194_q3",
+    "topicId": "cnm_h194",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "抛物线 y²=2px（p>0）的对称轴是？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "y 轴"
+      },
+      {
+        "key": "B",
+        "text": "x 轴"
+      },
+      {
+        "key": "C",
+        "text": "直线 y=x"
+      },
+      {
+        "key": "D",
+        "text": "准线"
+      }
+    ],
+    "answer": "B",
+    "explanation": "方程只用 y²，关于 x 轴对称。",
+    "verify": "\"x 轴\""
+  },
+  {
+    "知识点": "抛物线的简单几何性质",
+    "知识点ID": "cnm_h194",
+    "id": "cnm_h194_q4",
+    "topicId": "cnm_h194",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "y²=12x 的焦点到准线的距离是多少？",
+    "answer": "6",
+    "explanation": "p/2=3，焦点到准线的距离是 p=6。",
+    "verify": "6"
+  },
+  {
+    "知识点": "抛物线的简单应用",
+    "知识点ID": "cnm_h195",
+    "id": "cnm_h195_q1",
+    "topicId": "cnm_h195",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "天线截面是 y²=16x，单位为米。焦点到顶点的距离是多少？",
+    "answer": "4",
+    "explanation": "2p=16，p=8，焦点到顶点的距离是 p/2=4 米。",
+    "verify": "16//4"
+  },
+  {
+    "知识点": "抛物线的简单应用",
+    "知识点ID": "cnm_h195",
+    "id": "cnm_h195_q2",
+    "topicId": "cnm_h195",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "截面 y²=16x 上一点到焦点的距离是 9 米。它到准线的距离是多少米？",
+    "answer": "9",
+    "explanation": "抛物线定义保证这两个距离相等。",
+    "verify": "9"
+  },
+  {
+    "知识点": "抛物线的简单应用",
+    "知识点ID": "cnm_h195",
+    "id": "cnm_h195_q3",
+    "topicId": "cnm_h195",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "开口向右的抛物线焦点在 (2，0)。2p 等于多少？",
+    "answer": "8",
+    "explanation": "p/2=2，p=4，2p=8。",
+    "verify": "8"
+  },
+  {
+    "知识点": "抛物线的简单应用",
+    "知识点ID": "cnm_h195",
+    "id": "cnm_h195_q4",
+    "topicId": "cnm_h195",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "平行于抛物面对称轴的光线反射后会汇到哪里？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "顶点"
+      },
+      {
+        "key": "B",
+        "text": "准线上的任意点"
+      },
+      {
+        "key": "C",
+        "text": "圆心"
+      },
+      {
+        "key": "D",
+        "text": "焦点"
+      }
+    ],
+    "answer": "D",
+    "explanation": "这是抛物线的光学性质，也是探照灯和天线的简单模型。",
+    "verify": "\"焦点\""
+  },
+  {
+    "知识点": "直线与椭圆的交点个数",
+    "知识点ID": "cnm_h196",
+    "id": "cnm_h196_q1",
+    "topicId": "cnm_h196",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆 x²/4+y²/3=1 与直线 y=x 的交点有几个？",
+    "answer": "2",
+    "explanation": "代入后 (1/4+1/3)x²=1，即 7x²/12=1，有两个实根，所以有 2 个交点。",
+    "verify": "len(roots2(Fraction(7,12), 0, -1))"
+  },
+  {
+    "知识点": "直线与椭圆的交点个数",
+    "知识点ID": "cnm_h196",
+    "id": "cnm_h196_q2",
+    "topicId": "cnm_h196",
+    "difficulty": "basic",
+    "type": "numeric",
+    "prompt": "椭圆 x²/4+y²/1=1 与直线 y=2 的交点有几个？",
+    "answer": "0",
+    "explanation": "椭圆上 |y|≤1，直线 y=2 在椭圆上方，没有交点。",
+    "verify": "0"
+  },
+  {
+    "知识点": "直线与椭圆的交点个数",
+    "知识点ID": "cnm_h196",
+    "id": "cnm_h196_q3",
+    "topicId": "cnm_h196",
+    "difficulty": "standard",
+    "type": "numeric",
+    "prompt": "椭圆 x²/4+y²/1=1 与直线 y=1 的交点有几个？",
+    "answer": "1",
+    "explanation": "y=1 时 x=0，只有一个交点 (0，1)，直线与椭圆相切。",
+    "verify": "1"
+  },
+  {
+    "知识点": "直线与椭圆的交点个数",
+    "知识点ID": "cnm_h196",
+    "id": "cnm_h196_q4",
+    "topicId": "cnm_h196",
+    "difficulty": "standard",
+    "type": "choice",
+    "prompt": "直线代入椭圆后得到的二次方程有两个不相等实根，说明什么？",
+    "choices": [
+      {
+        "key": "A",
+        "text": "有两个交点"
+      },
+      {
+        "key": "B",
+        "text": "没有交点"
+      },
+      {
+        "key": "C",
+        "text": "有一个交点"
+      },
+      {
+        "key": "D",
+        "text": "直线经过两个焦点"
+      }
+    ],
+    "answer": "A",
+    "explanation": "每个实根对应一个交点的横坐标。两个不等实根就是两个交点。",
+    "verify": "\"有两个交点\""
+  }
+]
