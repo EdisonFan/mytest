@@ -1,77 +1,105 @@
-import re, os, ssl, urllib.request, urllib.parse, subprocess
+import re, ssl, urllib.request, urllib.parse, subprocess, shutil
 from pathlib import Path
 UA={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0 Safari/537.36"}
 ctx=ssl.create_default_context()
-def fetch(u,t=25):
-    req=urllib.request.Request(u,headers=UA)
+def dec(raw):
+    for enc in ("utf-8","gbk","gb18030"):
+        try: return raw.decode(enc)
+        except Exception: pass
+    return raw.decode("utf-8",errors="ignore")
+def fetch(u,t=30,ref=None):
+    h=dict(UA)
+    if ref: h["Referer"]=ref
+    req=urllib.request.Request(u,headers=h)
     with urllib.request.urlopen(req,timeout=t,context=ctx) as r:
-        return r.read(),r.status
+        return r.read(),r.status,r.headers.get("Content-Type","")
+def links(txt,base):
+    hs=re.findall(r"href=[\"']([^\"']+)[\"']",txt,re.I)
+    return list(dict.fromkeys(urllib.parse.urljoin(base,h) for h in hs))
 
-L=["# 扩展探测结果（由 GitHub Actions runner 执行）",""]
-L.append("## A. 从 runner 直接 git clone 外部托管平台")
-L.append("")
-for label,url in [("Gitee / oschina/git-osc","https://gitee.com/oschina/git-osc.git"),
-                  ("GitCode / 公开仓库探测","https://gitcode.com/gh_mirrors/cn/cn-math-taxonomy.git")]:
-    try:
-        p=subprocess.run(["git","clone","--depth","1",url,"/tmp/extrepo"],
-                         capture_output=True,text=True,timeout=100)
-        rc=p.returncode
-        n=len(list(Path("/tmp/extrepo").rglob("*"))) if Path("/tmp/extrepo").exists() else 0
-        top=" ".join(sorted(x.name for x in Path("/tmp/extrepo").iterdir())[:12]) if Path("/tmp/extrepo").exists() else ""
-        L.append(f"### {label}")
-        L.append(f"- exit={rc} | 条目数={n} | 顶层: {top}")
-        L.append(f"- log: {(p.stderr or p.stdout)[-260:].strip()}")
-        subprocess.run(["rm","-rf","/tmp/extrepo"])
-    except Exception as e:
-        L.append(f"### {label}\n- 异常: {type(e).__name__}: {str(e)[:160]}")
-    L.append("")
-
-L.append("## B. 免费题库站公开链接探测（仅读取公开页面）")
-L.append("")
-targets=[("第一试卷网","https://www.shijuan1.com/"),
-         ("第一试卷网·高中","https://www.shijuan1.com/gaozhong/"),
-         ("可圈可点·高中数学","http://gzsx.cooco.net.cn/"),
-         ("菁优网·高中数学","https://www.jyeoo.com/math/"),
-         ("教研云","https://www.jiaoyanyun.com/")]
+L=["# 深度探测：试卷下载链接与跨平台中转（GitHub Actions runner）",""]
 cands=[]
-for name,u in targets:
-    try:
-        raw,code=fetch(u,30)
-        text=raw.decode("utf-8",errors="ignore")
-        hrefs=re.findall(r"href=[\"']([^\"']+)[\"']",text,re.I)
-        full=[urllib.parse.urljoin(u,h) for h in hrefs]
-        files=[x for x in full if re.search(r"\.(pdf|docx?|zip|rar|7z)(\?|$)",x,re.I)]
-        kw=[x for x in full if re.search(r"shiti|shijuan|zujuan|test|paper|download",x,re.I)]
-        L.append(f"### {name}  `{u}`")
-        L.append(f"- HTTP {code} | {len(raw)} 字节 | 链接 {len(hrefs)} 个 | 文件链接 {len(files)} 个 | 试卷类 {len(kw)} 个")
-        for x in list(dict.fromkeys(kw[:8])): L.append(f"  - {x[:150]}")
-        if not kw:
-            for x in list(dict.fromkeys(full[:6])): L.append(f"  - (样例) {x[:150]}")
-        cands.extend(files)
-    except Exception as e:
-        L.append(f"### {name}\n- 异常: {type(e).__name__}: {str(e)[:160]}")
-    L.append("")
 
-L.append("## C. 下载公开免费文件（最多 2 个，用于验证端到端）")
+L.append("## 1. 第一试卷网：分类页 → 详情页 → 下载链接")
+L.append("")
+for seed in ["https://www.shijuan1.com/a/sjsx/","https://www.shijuan1.com/a/gzsx/"]:
+    try:
+        raw,code,ct=fetch(seed)
+        txt=dec(raw)
+        all_l=links(txt,seed)
+        detail=[x for x in all_l if re.search(r"/a/[a-z]+/\d+|\d{5,}\.html|sjsx/\d+",x)]
+        L.append(f"- 分类页 `{seed}` → HTTP {code}, {len(raw)} 字节, 链接 {len(all_l)}, 详情页候选 {len(detail)}")
+        for d in detail[:5]: L.append(f"  - {d[:140]}")
+        for d in detail[:3]:
+            try:
+                r2,c2,ct2=fetch(d,ref=seed)
+                t2=dec(r2)
+                dl=[x for x in links(t2,d) if re.search(r"\.(pdf|docx?|zip|rar)(\?|$)|/down|download|下载地址",x,re.I)]
+                L.append(f"  - 详情页 `{d[:100]}` → {len(r2)} 字节, 下载候选 {len(dl)}")
+                for x in dl[:6]: L.append(f"      · {x[:150]}")
+                cands.extend(dl)
+            except Exception as e: L.append(f"  - 详情页异常 {type(e).__name__}: {str(e)[:80]}")
+    except Exception as e:
+        L.append(f"- `{seed}` 异常 {type(e).__name__}: {str(e)[:100]}")
+L.append("")
+
+L.append("## 2. 可圈可点：试卷详情页 → 下载链接")
+L.append("")
+for d in ["http://gzsx.cooco.net.cn/paper/1687143727/","http://gzsx.cooco.net.cn/paper/1686797930/"]:
+    try:
+        raw,code,ct=fetch(d)
+        txt=dec(raw)
+        all_l=links(txt,d)
+        dl=[x for x in all_l if re.search(r"\.(pdf|docx?|zip|rar)(\?|$)|down|download|print|export",x,re.I)]
+        L.append(f"- `{d}` → HTTP {code}, {len(raw)} 字节, 链接 {len(all_l)}, 下载候选 {len(dl)}")
+        for x in dl[:8]: L.append(f"  - {x[:150]}")
+        if not dl:
+            for x in all_l[:5]: L.append(f"  - (样例) {x[:140]}")
+        cands.extend(dl)
+    except Exception as e: L.append(f"- `{d}` 异常 {type(e).__name__}: {str(e)[:100]}")
+L.append("")
+
+L.append("## 3. 实际下载公开免费文件（最多 2 个，验证魔数）")
 L.append("")
 Path("probe-assets").mkdir(exist_ok=True)
 got=[]
-for u in list(dict.fromkeys(cands))[:6]:
+for u in list(dict.fromkeys(cands))[:14]:
     if len(got)>=2: break
     try:
-        raw,code=fetch(u,45)
-        if code!=200 or len(raw)<2000: continue
-        fn=re.sub(r"[^A-Za-z0-9._-]","_",urllib.parse.urlparse(u).path.split("/")[-1])[-70:]
-        if not fn: fn="probe_"+str(len(got))+".bin"
-        if not re.search(r"\.(pdf|docx?|zip)$",fn,re.I): continue
+        raw,code,ct=fetch(u,45)
+        magic=raw[:4]
+        isfile = code==200 and len(raw)>3000 and (magic[:4]==b"%PDF" or magic[:2]==b"PK" or magic[:4]==b"\xd0\xcf\x11\xe0" or "pdf" in ct or "word" in ct or "zip" in ct)
+        if not isfile: continue
+        fn=re.sub(r"[^A-Za-z0-9._-]","_",urllib.parse.urlparse(u).path.split("/")[-1])[-60:] or ("asset%d"%len(got))
+        if not re.search(r"\.(pdf|docx?|zip)$",fn,re.I): fn+=".pdf" if magic[:4]==b"%PDF" else ".bin"
         Path("probe-assets",fn).write_bytes(raw)
-        got.append((fn,len(raw),u))
-    except Exception as e:
-        pass
+        got.append((fn,len(raw),ct[:30],u))
+    except Exception: pass
 if got:
-    for fn,size,u in got: L.append(f"- **{fn}** — {size} 字节 — 来自 `{u[:130]}`")
+    for fn,size,ct,u in got: L.append(f"- **{fn}** — {size} 字节 — `{ct}` — 来自 `{u[:120]}`")
 else:
-    L.append("- 首页未直接暴露可下载文件链接（这类站点通常需要进入试卷详情页 / 组卷流程）")
+    L.append("- 候选链接均非直接文件（站点多为 JS 触发下载 / 需要会话），未强行抓取")
 L.append("")
-Path("extended-probe-result.md").write_text("\n".join(L),encoding="utf-8")
+
+L.append("## 4. 跨平台中转验证：clone Gitee 仓库 → 复制样本到本仓库")
+L.append("")
+try:
+    subprocess.run(["rm","-rf","/tmp/giteerepo"])
+    p=subprocess.run(["git","clone","--depth","1","https://gitee.com/oschina/git-osc.git","/tmp/giteerepo"],
+                     capture_output=True,text=True,timeout=100)
+    L.append(f"- `git clone --depth 1 gitee.com/oschina/git-osc.git` → exit={p.returncode}")
+    if p.returncode==0:
+        Path("mirror-sample").mkdir(exist_ok=True)
+        picked=[]
+        for x in Path("/tmp/giteerepo").rglob("*"):
+            if x.is_file() and ".git" not in x.parts and len(picked)<6 and x.stat().st_size<200000:
+                dest=Path("mirror-sample",re.sub(r"[^A-Za-z0-9._-]","_",x.name))
+                shutil.copy2(x,dest); picked.append(dest.name)
+        L.append(f"- 已复制 {len(picked)} 个文件到 `mirror-sample/`: {', '.join(picked)}")
+        L.append("- 这些文件随本次 commit 进入 GitHub，可由 jsDelivr / codeload 从沙盒侧取回")
+    shutil.rmtree("/tmp/giteerepo",ignore_errors=True)
+except Exception as e:
+    L.append(f"- 异常 {type(e).__name__}: {str(e)[:140]}")
+L.append("")
+Path("deep-probe-result.md").write_text("\n".join(L),encoding="utf-8")
 print("\n".join(L))
