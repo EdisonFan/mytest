@@ -1,70 +1,54 @@
 import subprocess, re, urllib.request, ssl
 from pathlib import Path
 UA={"User-Agent":"Mozilla/5.0"}
-def sh(cmd,t=100):
+def sh(cmd,t=120):
     try:
         p=subprocess.run(cmd,shell=True,capture_output=True,text=True,timeout=t)
         return p.returncode,(p.stdout+p.stderr).strip()
-    except Exception as e: return -1,f"{type(e).__name__}: {str(e)[:120]}"
-L=["# git-sync 参数全解与 CNB 写认证层验证",""]
+    except Exception as e: return -1,f"{type(e).__name__}: {str(e)[:130]}"
+L=["# CNB 官方 git-sync 插件文档与写认证层验证",""]
 
-L.append("## A. 镜像入口脚本 `/bin/entrypoint.sh` 全文")
+L.append("## A. 官方插件仓库 clone（CNB → runner）")
 L.append("")
-rc,out=sh("docker run --rm --entrypoint cat tencentcom/git-sync /bin/entrypoint.sh",90)
-L.append(f"- exit={rc} | {len(out)} 字符")
-L.append("```bash")
-for line in out.splitlines()[:160]: L.append(line[:220])
-L.append("```")
-L.append("")
-vars=sorted(set(re.findall(r"\b(?:PLUGIN_)?[A-Z][A-Z0-9_]{3,}\b",out)))
-vars=[v for v in vars if not re.match(r"^(?:EOF|HEAD|SHA|URL|UTF|HTTP|HTTPS|GIT|NULL|TRUE|FALSE|ERROR|WARNING)$",v)]
-L.append("### 提取到的变量名")
-L.append("")
-L.append("`"+"`, `".join(vars[:80])+"`")
-L.append("")
-L.append("### 部分 `PLUGIN_` 映射（脚本里实际读取的）")
-L.append("")
-for m in re.findall(r'PLUGIN_[A-Z_]+',out):
-    L.append(f"- `{m}`")
+sh("rm -rf /tmp/git-sync-doc")
+rc,out=sh("git clone --depth 1 https://cnb.cool/cnb/plugins/tencentcom/git-sync.git /tmp/git-sync-doc",120)
+L.append(f"- `git clone https://cnb.cool/cnb/plugins/tencentcom/git-sync.git` -> exit={rc} | {out[-150:].replace(chr(10),' ')}")
+if rc==0:
+    files=[p for p in Path("/tmp/git-sync-doc").rglob("*") if p.is_file() and ".git/" not in str(p)]
+    L.append(f"- 文件 {len(files)} 个: {', '.join(p.name for p in files[:20])}")
+    for name in ["README.md","README.zh.md","readme.md","docs/README.md","plugin.yml","README_EN.md"]:
+        p=Path("/tmp/git-sync-doc",name)
+        if p.exists():
+            t=p.read_text(encoding="utf-8",errors="ignore")
+            L.append(f"\n### `{name}` ({len(t)} 字符)")
+            L.append("```")
+            for line in t.splitlines()[:110]: L.append(line[:220])
+            L.append("```")
+            break
+    else:
+        L.append("- 未找到 README，列出根文件:")
+        for p in files[:15]: L.append(f"  - `{p.relative_to('/tmp/git-sync-doc')}`")
 L.append("")
 
-L.append("## B. 带无效 token 跑一次（目标是虚构仓库，不会写入任何真实仓库）")
+L.append("## B. 写认证层：带无效 token 推虚构仓库（不会碰任何真实仓库）")
 L.append("")
+sh("rm -rf /tmp/fakerepo && mkdir -p /tmp/fakerepo && cd /tmp/fakerepo && git init -q && git config user.email a@b.c && git config user.name a && echo probe > a.txt && git add . && git commit -qm init")
 fake="https://cnb.cool/yuanbao-probe-nonexistent/probe-nonexistent/probe.git"
-cmd=(f"timeout 70 docker run --rm "
+cmd=(f"timeout 90 docker run --rm -v /tmp/fakerepo:/workspace -w /workspace "
      f"-e PLUGIN_TARGET_URL='{fake}' -e PLUGIN_AUTH_TYPE='https' "
      f"-e PLUGIN_USERNAME='cnb' -e PLUGIN_PASSWORD='invalid_probe_token_000' "
      f"-e PLUGIN_FORCE='true' tencentcom/git-sync")
-rc,out=sh(cmd,90)
+rc,out=sh(cmd,110)
 L.append(f"- exit={rc}")
-for line in out.splitlines()[:25]: L.append(f"  `{line[:210]}`")
-L.append("- 说明：若返回 CNB 侧的认证/404 错误（而非网络不通），证明写请求能到达 CNB 应用层")
+for line in out.splitlines()[:30]: L.append(f"  `{line[:210]}`")
+L.append("- 若出现 CNB 返回的 401/403/404（而非网络超时/拒绝连接），说明写请求到达 CNB 应用层")
 L.append("")
 
-L.append("## C. CNB 仓库里的原生配置（clone 下来的 tencent/cherry-markdown）")
+L.append("## C. 对照：Gitee 写认证层（同样用虚构仓库 + 无效凭证）")
 L.append("")
-sh("git clone --depth 1 https://cnb.cool/tencent/cherry-markdown/cherry-markdown.git /tmp/cnbrepo",150)
-for p in ["/tmp/cnbrepo/.cnb.yml","/tmp/cnbrepo/.cnb/config.yml","/tmp/cnbrepo/.github/workflows/sync-cnb.yml"]:
-    f=Path(p)
-    if f.exists():
-        t=f.read_text(encoding="utf-8",errors="ignore")
-        L.append(f"### `{p}` ({len(t)} 字符)")
-        L.append("```yaml")
-        for line in t.splitlines()[:45]: L.append(line[:200])
-        L.append("```")
-    else: L.append(f"### `{p}` — 不存在")
+rc,out=sh("cd /tmp/fakerepo && timeout 60 git push https://yuanbao_probe_nonexistent:invalid_probe_token_000@gitee.com/yuanbao_probe_nonexistent/probe.git main 2>&1 | tail -8",80)
+L.append(f"- exit={rc}")
+for line in out.splitlines()[:10]: L.append(f"  `{line[:210]}`")
 L.append("")
-
-L.append("## D. CNB OpenAPI 页面里的接口线索")
-L.append("")
-try:
-    req=urllib.request.Request("https://api.cnb.cool/",headers=UA)
-    with urllib.request.urlopen(req,timeout=35) as r: html=r.read().decode("utf-8",errors="ignore")
-    paths=sorted(set(re.findall(r"[\"'`](/[a-zA-Z0-9_/{}$.-]{6,60})[\"'`]",html)))
-    api=[x for x in paths if re.search(r"/(repos|users|groups|files|git|token)",x,re.I)]
-    L.append(f"- 页面 {len(html)} 字符 | 提取路径 {len(paths)} | 含 repos 类 {len(api)}")
-    for x in api[:25]: L.append(f"  - `{x}`")
-except Exception as e: L.append(f"- 异常 {type(e).__name__}: {str(e)[:120]}")
-L.append("")
-Path("cnb-sync-params.md").write_text("\n".join(L),encoding="utf-8")
-print("\n".join(L)[:9000])
+Path("cnb-official-doc.md").write_text("\n".join(L),encoding="utf-8")
+print("\n".join(L)[:11000])
