@@ -236,4 +236,99 @@ unset GH_TOKEN
 
 ---
 
+## 9. 同一个思路能迁移到 Gitee / CNB 吗？
+
+**结论：在这个沙盒里不能，但「换承载」这个思路本身可以迁移到两个实际场景。**
+
+### 9.1 实测：全线被挡，且没有第二个可放行域
+
+广撒网探了 Gitee / 开源中国 / GitCode / CNB 约 70 个域名与路径：
+
+| 组 | 探测对象 | 结果 |
+|---|---|---|
+| Gitee 系 | `gitee.com`（含 `/api/v5/*`、`/raw/*`、`/repository/archive/*`、`/robots.txt`）、`www.gitee.com`、`gitee.cn`、`git.oschina.net`、`www.oschina.net`、`my.oschina.net`、`static.oschina.net`、`oscimg.oschina.net`、`gitee.io`、`*.gitee.io`、`api.gitee.com` | **全部 403** |
+| 镜像 / 代理 | `gitcode.com`、`gitcode.net`、`raw.gitcode.com`、`maven.aliyun.com`、`registry.npmmirror.com`、`gitclone.com`、`hub.fastgit.org`、`kgithub.com`、`ghproxy.net`、`r.jina.ai`、`api.allorigins.win` | **全部 403** |
+| CNB 系 | `cnb.cool` 主域及 `www / api / git / docs / asset / assets / cdn / static / docker / registry / npm / objects / oss / raw / media / codeload / open / status / repo` 等 20 个子域，加 `/api/v1`、`/graphql`、`/oauth/token`、`/health` | **全部 403** |
+| 对照 | `docs.qq.com`、`cdn.jsdelivr.net`、`unpkg.com` | 200 |
+
+所有 403 的响应体都是同一个：
+
+```json
+{"title":"Request denied","status":403,"detail":"No policy rule matched the request",
+ "reason":"policy_default_denied"}
+```
+
+**关键判别**：带无效 token 打 `gitee.com/api/v5/user` 和 `api.cnb.cool/user`，返回的仍是这份出口策略 403，**不是** Gitee/CNB 自己的 `401 Unauthorized`。对比 GitHub 带无效 token 得到 `401 Bad credentials` —— 说明 Gitee/CNB 的请求**根本没到达应用层**，token 在这里完全用不上。
+
+DNS 正常解析（`gitee.com` → 180.76.198.x，`api.cnb.cool` → 169.254.1.49），TCP 443 / 22 / 9418 也都能连，但 HTTP 层统一被策略拒绝。又一次印证：**端口通 ≠ 协议通 ≠ 应用可达**。
+
+### 9.2 为什么 GitHub 行、这两家不行
+
+不是运气，是架构差异：
+
+| | GitHub | Gitee | CNB |
+|---|---|---|---|
+| 整仓下载域 | `codeload.github.com`（**独立域，放行**） | `gitee.com/.../repository/archive/...`（同域路径） | `codeload.cnb.cool`（同域子域） |
+| 单文件 CDN | `cdn.jsdelivr.net/gh/...`（**第三方域，放行**） | 无等价公开 CDN | 无等价公开 CDN |
+| API 域 | `api.github.com`（**独立域，放行**） | `gitee.com/api/v5`（同域路径） | `api.cnb.cool`（同域子域） |
+
+GitHub 的能力**分散在三个互不相干的域名**上，其中恰好有两个被放行；Gitee/CNB 把所有能力收在**同一个域及其子域**下，一条策略全挡住。「换承载域名」的前提是**存在另一个承载域**，这两家没有。
+
+### 9.3 思路迁移之一：拉 —— 找 GitHub 上的副本
+
+很多国内仓库在 GitHub 有镜像。实测 `api.github.com/search/repositories`：
+
+- `gitee mirror` → **784 个结果**，含大量明确标注 `Mirror of https://gitee.com/...` 的仓库
+- `cnb.cool` → **37 个结果**，含 `migrated from cnb.cool` 的仓库
+- `gitee sync github` → 97 个结果，含同步工具
+
+所以想拿 Gitee/CNB 上某个仓库的内容：先去 GitHub 搜同名/镜像仓库，命中后用本文的 `codeload` 或 `cdn.jsdelivr.net/gh/` 取。实测对照：`cn-math-taxonomy` 的 README 走 jsDelivr 200（125 KB）、整仓走 codeload 200（11.4 MB）。
+
+### 9.4 思路迁移之二：推 —— GitHub 中转 + 自动同步
+
+沙盒不能直连 Gitee/CNB，但可以**先推进 GitHub（已验证可行），再让平台自己同步过去**：
+
+| 目标 | 方案 |
+|---|---|
+| Gitee / GitLab / GitCode | `Yikun/hub-mirror-action`（★714）—— 实测 README 明确写「用于在 Github、Gitee、Gitlab 和 Gitcode 账户代码仓库同步」，配置 `src: github/<user>`、`dst: gitee/<user>`、`dst_token: ${{ secrets.GITEE_TOKEN }}` |
+| Gitee（轻量） | `ShixiangWang/sync2gitee` —— 自动镜像 GitHub 仓库到 Gitee，改配置文件里的 src/dst 即可 |
+| Gitee Pages | `yanglbme/gitee-pages-action`（★662） |
+| CNB | 上述 Action 的支持列表**不含 CNB**；用网页端「从 GitHub 导入仓库 / 仓库同步」，或在 CNB 云原生构建里配置同步任务 |
+
+这条路径的妙处：**写入动作全部发生在已放行的 `api.github.com`，同步动作发生在平台侧**，沙盒完全不需要碰 Gitee/CNB 的域名。
+
+### 9.5 本机（网络通）时的直连方案
+
+在你自己电脑上，两家都能用 API 直接读写，不需要 git 协议：
+
+**Gitee OpenAPI v5**（token 在 `gitee.com/profile/personal_access_tokens` 创建）
+
+```bash
+export GITEE_TOKEN='你的token'
+
+# 读文件内容
+curl "https://gitee.com/api/v5/repos/OWNER/REPO/contents/README.md?access_token=$GITEE_TOKEN&ref=master"
+
+# 新建文件（一次提交）
+curl -X POST "https://gitee.com/api/v5/repos/OWNER/REPO/contents/probe.md" \
+  -d "access_token=$GITEE_TOKEN" \
+  -d "message=add file" \
+  -d "content=$(printf '# hello' | base64 -w0)" \
+  -d "branch=master"
+
+# 更新 / 删除：改用 PUT / DELETE，并带上该文件的 sha
+```
+
+**CNB**：有 OpenAPI 与 `cnb` CLI，token 在 `cnb.cool` 设置页创建；具体端点以官方 `docs.cnb.cool`（本机可访问，沙盒 403）为准。CNB 的 npm / Docker registry 子域也在沙盒被挡，本机可用。
+
+⚠️ Gitee API 的分支常是 `master` 不是 `main`；写前先 GET 预检同名文件，避免覆盖。
+
+### 9.6 这一节的教训
+
+「换个域名再试」不是万能钥匙，它生效的**前提是目标生态里真的存在另一个独立承载域**。GitHub 恰好有，Gitee/CNB 没有。所以遇到新平台时，第一步应该是**画域名拓扑**（能力分散在几个域上），而不是拿几十个 URL 去撞墙。
+
+撞墙失败也别直接收手：把问题从「怎么连上 A」改成「A 上的东西在哪儿还有一份副本」「能不能先写到 B 再让 A 来同步」—— 9.3 / 9.4 就是这么来的。
+
+---
+
 *本文由一次「先说不行 → 被追问 → 逐层收敛」的实际排查整理而成。所有 URL 与状态码均为实测值；出口策略可能随时间调整，复用前先跑一次自检。*
