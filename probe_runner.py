@@ -1,76 +1,70 @@
 import subprocess, re, urllib.request, ssl
 from pathlib import Path
-ctx=ssl.create_default_context()
-UA={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0 Safari/537.36"}
-def sh(cmd,t=120):
+UA={"User-Agent":"Mozilla/5.0"}
+def sh(cmd,t=100):
     try:
         p=subprocess.run(cmd,shell=True,capture_output=True,text=True,timeout=t)
         return p.returncode,(p.stdout+p.stderr).strip()
     except Exception as e: return -1,f"{type(e).__name__}: {str(e)[:120]}"
-def get(u,t=30):
-    try:
-        req=urllib.request.Request(u,headers=UA)
-        with urllib.request.urlopen(req,timeout=t,context=ctx) as r: return r.read().decode("utf-8",errors="ignore"),r.status
-    except Exception as e: return f"{type(e).__name__}: {str(e)[:120]}",0
+L=["# git-sync 参数全解与 CNB 写认证层验证",""]
 
-L=["# CNB 同步方案验证（GitHub Actions runner 执行）",""]
-TARGET="https://cnb.cool/tencent/cherry-markdown/cherry-markdown.git"
-
-L.append("## A. CNB 的 git 协议（公开仓库，只读）")
+L.append("## A. 镜像入口脚本 `/bin/entrypoint.sh` 全文")
 L.append("")
-for label,cmd in [("git ls-remote HEAD",f"git ls-remote {TARGET} HEAD"),
-                  ("git ls-remote refs/heads/dev",f"git ls-remote {TARGET} refs/heads/dev"),
-                  ("git ls-remote --heads (前5行)",f"git ls-remote --heads {TARGET} | head -5")]:
-    rc,out=sh(cmd,90)
-    L.append(f"### {label}")
-    L.append(f"- exit={rc}")
-    for line in out.splitlines()[:6]: L.append(f"  `{line[:150]}`")
-    L.append("")
-rc,out=sh(f"git clone --depth 1 {TARGET} /tmp/cnbrepo",150)
-L.append(f"### git clone --depth 1")
-L.append(f"- exit={rc} | log: {out[-180:].replace(chr(10),' ')}")
-if rc==0:
-    n=len(list(Path('/tmp/cnbrepo').rglob('*')))
-    top=", ".join(sorted(x.name for x in Path('/tmp/cnbrepo').iterdir())[:10])
-    L.append(f"- 条目数={n} | 顶层: {top}")
+rc,out=sh("docker run --rm --entrypoint cat tencentcom/git-sync /bin/entrypoint.sh",90)
+L.append(f"- exit={rc} | {len(out)} 字符")
+L.append("```bash")
+for line in out.splitlines()[:160]: L.append(line[:220])
+L.append("```")
+L.append("")
+vars=sorted(set(re.findall(r"\b(?:PLUGIN_)?[A-Z][A-Z0-9_]{3,}\b",out)))
+vars=[v for v in vars if not re.match(r"^(?:EOF|HEAD|SHA|URL|UTF|HTTP|HTTPS|GIT|NULL|TRUE|FALSE|ERROR|WARNING)$",v)]
+L.append("### 提取到的变量名")
+L.append("")
+L.append("`"+"`, `".join(vars[:80])+"`")
+L.append("")
+L.append("### 部分 `PLUGIN_` 映射（脚本里实际读取的）")
+L.append("")
+for m in re.findall(r'PLUGIN_[A-Z_]+',out):
+    L.append(f"- `{m}`")
 L.append("")
 
-L.append("## B. tencentcom/git-sync 镜像")
+L.append("## B. 带无效 token 跑一次（目标是虚构仓库，不会写入任何真实仓库）")
 L.append("")
-rc,out=sh("docker pull tencentcom/git-sync",240)
-L.append(f"- `docker pull tencentcom/git-sync` -> exit={rc} | {out[-220:].replace(chr(10),' ')}")
-if rc==0:
-    for label,cmd in [("inspect Env","docker inspect --format '{{json .Config.Env}}' tencentcom/git-sync"),
-                      ("inspect Entrypoint/Cmd","docker inspect --format '{{json .Config.Entrypoint}} {{json .Config.Cmd}}' tencentcom/git-sync"),
-                      ("run --help","docker run --rm tencentcom/git-sync --help")]:
-        rc2,o2=sh(cmd,90)
-        L.append(f"- **{label}** -> exit={rc2}")
-        for line in o2.splitlines()[:12]: L.append(f"  `{line[:200]}`")
-    L.append("")
-    L.append("### 从镜像内查找参数定义（PLUGIN_ 全集）")
-    rc3,o3=sh("docker run --rm --entrypoint sh tencentcom/git-sync -c 'ls -la / && (grep -rho \"PLUGIN_[A-Z_]*\" / 2>/dev/null | sort -u | head -60)'",120)
-    L.append(f"- exit={rc3}")
-    for line in o3.splitlines()[:60]: L.append(f"  `{line[:180]}`")
-else:
-    L.append("- 镜像拉取失败，跳过后续（不阻塞其它验证）")
+fake="https://cnb.cool/yuanbao-probe-nonexistent/probe-nonexistent/probe.git"
+cmd=(f"timeout 70 docker run --rm "
+     f"-e PLUGIN_TARGET_URL='{fake}' -e PLUGIN_AUTH_TYPE='https' "
+     f"-e PLUGIN_USERNAME='cnb' -e PLUGIN_PASSWORD='invalid_probe_token_000' "
+     f"-e PLUGIN_FORCE='true' tencentcom/git-sync")
+rc,out=sh(cmd,90)
+L.append(f"- exit={rc}")
+for line in out.splitlines()[:25]: L.append(f"  `{line[:210]}`")
+L.append("- 说明：若返回 CNB 侧的认证/404 错误（而非网络不通），证明写请求能到达 CNB 应用层")
 L.append("")
 
-L.append("## C. CNB 官方文档 / OpenAPI")
+L.append("## C. CNB 仓库里的原生配置（clone 下来的 tencent/cherry-markdown）")
 L.append("")
-for u in ["https://api.cnb.cool/", "https://docs.cnb.cool/",
-          "https://docs.cnb.cool/zh/guide/repo-mirror.html",
-          "https://docs.cnb.cool/zh/guide/token.html"]:
-    txt,code=get(u,30)
-    L.append(f"- `{u}` -> HTTP {code} | {len(txt)} 字符")
-    for kw in ["git-sync","同步","token","Access Token","仓库同步","mirror"]:
-        m=re.search(rf".{{0,60}}{re.escape(kw)}.{{0,110}}",txt,re.I|re.S)
-        if m: L.append(f"  - [{kw}] …{' '.join(m.group(0).split())[:170]}…")
+sh("git clone --depth 1 https://cnb.cool/tencent/cherry-markdown/cherry-markdown.git /tmp/cnbrepo",150)
+for p in ["/tmp/cnbrepo/.cnb.yml","/tmp/cnbrepo/.cnb/config.yml","/tmp/cnbrepo/.github/workflows/sync-cnb.yml"]:
+    f=Path(p)
+    if f.exists():
+        t=f.read_text(encoding="utf-8",errors="ignore")
+        L.append(f"### `{p}` ({len(t)} 字符)")
+        L.append("```yaml")
+        for line in t.splitlines()[:45]: L.append(line[:200])
+        L.append("```")
+    else: L.append(f"### `{p}` — 不存在")
 L.append("")
-L.append("## D. 结论所需：无凭证写 CNB 会停在哪一层")
+
+L.append("## D. CNB OpenAPI 页面里的接口线索")
 L.append("")
-rc,out=sh("git ls-remote https://cnb.cool/tencent/cherry-markdown/cherry-markdown.git 2>&1 | head -3",60)
-L.append(f"- 匿名只读 exit={rc}（成功=公开仓库可读）")
-L.append("- 推送需 CNB 的访问令牌（本轮未提供，不尝试写入，避免误操作）")
+try:
+    req=urllib.request.Request("https://api.cnb.cool/",headers=UA)
+    with urllib.request.urlopen(req,timeout=35) as r: html=r.read().decode("utf-8",errors="ignore")
+    paths=sorted(set(re.findall(r"[\"'`](/[a-zA-Z0-9_/{}$.-]{6,60})[\"'`]",html)))
+    api=[x for x in paths if re.search(r"/(repos|users|groups|files|git|token)",x,re.I)]
+    L.append(f"- 页面 {len(html)} 字符 | 提取路径 {len(paths)} | 含 repos 类 {len(api)}")
+    for x in api[:25]: L.append(f"  - `{x}`")
+except Exception as e: L.append(f"- 异常 {type(e).__name__}: {str(e)[:120]}")
 L.append("")
-Path("cnb-probe-result.md").write_text("\n".join(L),encoding="utf-8")
-print("\n".join(L))
+Path("cnb-sync-params.md").write_text("\n".join(L),encoding="utf-8")
+print("\n".join(L)[:9000])
