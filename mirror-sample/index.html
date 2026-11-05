@@ -1,0 +1,31 @@
+---
+layout: default
+---
+
+<div class="main-title">
+  Gitee 更新日志
+</div>
+
+<!-- 遍历分页后的文章 -->
+{% for post in paginator.posts %}
+  <div class="position" id="{{ forloop.index }}"></div>
+  <div class="content">
+    <div class="log content">
+      <div class="log item">
+        <div class="log title" position="{{ forloop.index }}">
+          <a href="{{ post.url | prepend: site.baseurl | replace: '//', '/' }}">
+            {{ post.title }}
+            <span class="log time">
+              {{ post.date | date: "%Y-%m-%d" }}
+            </span>
+          </a>
+        </div>
+        <div class="log info">
+          {{ post.content }}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+{% include paginator.html %}
