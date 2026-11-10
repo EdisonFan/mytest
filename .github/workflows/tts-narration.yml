@@ -24,8 +24,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install edge-tts
-        run: pip install --quiet edge-tts
+      - name: Install TTS deps
+        run: pip install --quiet edge-tts mutagen imageio-ffmpeg
 
       - name: Synthesize narration via Microsoft TTS
         run: |
@@ -40,7 +40,6 @@ jobs:
         run: |
           git config user.name "tts-worker"
           git config user.email "tts-worker@users.noreply.github.com"
-          git add tts-output/run.log
-          git add tts-output/narration.m4a 2>/dev/null || true
+          git add -f tts-output/
           git commit -m "TTS worker output" || echo "no change"
           git push
