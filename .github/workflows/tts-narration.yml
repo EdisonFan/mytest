@@ -28,12 +28,19 @@ jobs:
         run: pip install --quiet edge-tts
 
       - name: Synthesize narration via Microsoft TTS
-        run: python3 tts-worker/narration.py
+        run: |
+          mkdir -p tts-output
+          set +e
+          python3 tts-worker/narration.py > tts-output/run.log 2>&1
+          echo "EXIT=$?" >> tts-output/run.log
+          cat tts-output/run.log
 
-      - name: Save audio back to repo
+      - name: Save audio and logs back to repo
+        if: always()
         run: |
           git config user.name "tts-worker"
           git config user.email "tts-worker@users.noreply.github.com"
-          git add tts-output/narration.m4a
-          git commit -m "Add Microsoft TTS narration" || echo "no change"
+          git add tts-output/run.log
+          git add tts-output/narration.m4a 2>/dev/null || true
+          git commit -m "TTS worker output" || echo "no change"
           git push

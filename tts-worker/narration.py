@@ -3,6 +3,7 @@
 
 在 GitHub Actions runner 上执行（cwd = 仓库根目录）。
 输出：tts-output/narration.m4a
+v2：stdout 全部回写日志，便于沙盒侧取回诊断。
 """
 import asyncio
 import pathlib
