@@ -1,0 +1,39 @@
+name: TTS Narration Worker
+
+on:
+  push:
+    paths:
+      - 'tts-worker/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tts-narration
+  cancel-in-progress: true
+
+jobs:
+  narrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install edge-tts
+        run: pip install --quiet edge-tts
+
+      - name: Synthesize narration via Microsoft TTS
+        run: python3 tts-worker/narration.py
+
+      - name: Save audio back to repo
+        run: |
+          git config user.name "tts-worker"
+          git config user.email "tts-worker@users.noreply.github.com"
+          git add tts-output/narration.m4a
+          git commit -m "Add Microsoft TTS narration" || echo "no change"
+          git push
