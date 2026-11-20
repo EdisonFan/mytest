@@ -1,0 +1,14 @@
+{
+  "audioOffsetInSeconds": 20,
+  "songName": "Blue Danube · Waltz",
+  "artistName": "US Marine Band",
+  "textColor": "#fff0d4",
+  "visualizer": {
+    "type": "spectrum",
+    "bassOverlay": true,
+    "color": "#ffca6b",
+    "linesToDisplay": 96,
+    "mirrorWave": true,
+    "numberOfSamples": "256"
+  }
+}
