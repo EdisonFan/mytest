@@ -1,0 +1,82 @@
+name: Render Music Visualization Template Demo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: music-viz-render
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install deps (official npmjs reachable on runner)
+        working-directory: music-viz
+        run: npm i --no-audit --no-fund 2>&1 | tee ../npm-install.log
+
+      - name: Print resolved Remotion versions
+        working-directory: music-viz
+        run: npm ls remotion @remotion/media @remotion/media-utils --depth=0 || true
+
+      - name: Ensure Chrome Headless Shell
+        working-directory: music-viz
+        run: npx remotion browser ensure
+
+      - name: Render 1/3 spectrum (official defaults)
+        working-directory: music-viz
+        run: |
+          mkdir -p out
+          npx remotion render Visualizer out/01-spectrum.mp4 \
+            --codec=h264 --gl=swiftshader --log=info 2>&1 | tee ../render-spectrum.log
+
+      - name: Render 2/3 oscilloscope (props override)
+        working-directory: music-viz
+        run: |
+          npx remotion render Visualizer out/02-oscilloscope.mp4 \
+            --props=props/oscilloscope.json \
+            --codec=h264 --gl=swiftshader --log=info 2>&1 | tee ../render-oscilloscope.log
+
+      - name: Render 3/3 mirrored spectrum (props override)
+        working-directory: music-viz
+        run: |
+          npx remotion render Visualizer out/03-mirror.mp4 \
+            --props=props/mirror.json \
+            --codec=h264 --gl=swiftshader --log=info 2>&1 | tee ../render-mirror.log
+
+      - name: Probe and still frames
+        run: |
+          mkdir -p rendered/music-viz
+          cp music-viz/out/*.mp4 rendered/music-viz/
+          cp music-viz/props/*.json rendered/music-viz/
+          for f in rendered/music-viz/*.mp4; do
+            echo "===== $f =====" >> rendered/music-viz/ffprobe.txt
+            ffprobe -v error -show_entries format=duration,size \
+              -show_entries stream=index,codec_type,codec_name,width,height,r_frame_rate,sample_rate,channels \
+              -of default=noprint_wrappers=1 "$f" >> rendered/music-viz/ffprobe.txt
+            base=$(basename "$f" .mp4)
+            ffmpeg -v error -ss 6 -i "$f" -frames:v 1 -y "rendered/music-viz/${base}.png"
+          done
+          date -u +'%Y-%m-%dT%H:%M:%SZ' > rendered/music-viz/rendered_at.txt
+
+      - name: Save outputs and logs back to repo
+        if: always()
+        run: |
+          mkdir -p rendered/music-viz
+          cp npm-install.log render-spectrum.log render-oscilloscope.log render-mirror.log \
+             rendered/music-viz/ 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f rendered/music-viz/
+          git commit -m "Music visualization template demo outputs [skip ci]" || echo "no changes"
+          git push
