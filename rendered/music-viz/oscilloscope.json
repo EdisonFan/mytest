@@ -1,0 +1,9 @@
+{
+  "visualizer": {
+    "type": "oscilloscope",
+    "bassOverlay": true,
+    "color": "#ff7a45",
+    "windowInSeconds": 1,
+    "amplitude": 1.3
+  }
+}

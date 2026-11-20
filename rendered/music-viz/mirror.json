@@ -1,0 +1,13 @@
+{
+  "songName": "Mirror Frequency",
+  "artistName": "Yuanbao Demo",
+  "textColor": "#ffe9c7",
+  "visualizer": {
+    "type": "spectrum",
+    "bassOverlay": true,
+    "color": "#ff8a3c",
+    "linesToDisplay": 96,
+    "mirrorWave": true,
+    "numberOfSamples": "256"
+  }
+}
