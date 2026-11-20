@@ -1,0 +1,70 @@
+name: Render Danube Cinematic (complex motion demo)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: danube-cinematic
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install deps
+        working-directory: danube-cinematic
+        run: npm i --no-audit --no-fund 2>&1 | tee ../npm-install.log
+
+      - name: Typecheck (non-blocking, diagnostics only)
+        working-directory: danube-cinematic
+        run: npx tsc --noEmit > ../tsc.log 2>&1 || true
+
+      - name: Ensure Chrome Headless Shell
+        working-directory: danube-cinematic
+        run: npx remotion browser ensure
+
+      - name: Verify compositions
+        working-directory: danube-cinematic
+        run: npx remotion compositions src/index.ts > ../compositions.log 2>&1 || true
+
+      - name: Render 1/2 · main (24s / 1920x1080 / 30fps)
+        working-directory: danube-cinematic
+        run: |
+          mkdir -p out
+          npx remotion render DanubeFilm out/01-danube-cinematic.mp4 \
+            --codec=h264 --gl=swiftshader --log=info 2>&1 | tee ../render-main.log
+
+      - name: Render 2/2 · props variant
+        working-directory: danube-cinematic
+        run: |
+          npx remotion render DanubeFilm out/02-variant.mp4 \
+            --props=props/variant.json \
+            --codec=h264 --gl=swiftshader --log=info 2>&1 | tee ../render-variant.log
+
+      - name: Save outputs and all logs back to repo
+        if: always()
+        run: |
+          mkdir -p rendered/danube-cinematic
+          cp danube-cinematic/out/*.mp4 rendered/danube-cinematic/ 2>/dev/null || true
+          cp danube-cinematic/props/*.json rendered/danube-cinematic/ 2>/dev/null || true
+          cp npm-install.log tsc.log compositions.log render-main.log render-variant.log \
+             rendered/danube-cinematic/ 2>/dev/null || true
+          date -u +'%Y-%m-%dT%H:%M:%SZ' > rendered/danube-cinematic/rendered_at.txt
+          echo "=== tsc.log ===" && cat tsc.log 2>/dev/null | head -40 || true
+          echo "=== compositions.log ===" && cat compositions.log 2>/dev/null | head -20 || true
+          echo "=== outputs ===" && ls -lh rendered/danube-cinematic/
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f rendered/danube-cinematic/
+          git commit -m "Danube cinematic complex motion demo outputs [skip ci]" || echo "no changes"
+          git push
