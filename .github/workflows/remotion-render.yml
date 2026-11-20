@@ -2,11 +2,6 @@ name: Render Remotion Demo (npm ci on runner)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'remotion-demo/**'
-      - '.github/workflows/remotion-render.yml'
 
 jobs:
   render:
@@ -23,7 +18,30 @@ jobs:
           cache: 'npm'
           cache-dependency-path: remotion-demo/package-lock.json
 
-      - name: npm ci (registry.npmjs.org is reachable here)
+      # 本地生成 lock 时用的是镜像，runner 上改回 npm 官方源
+      - name: Redirect lockfile to registry.npmjs.org
+        working-directory: remotion-demo
+        run: |
+          python3 - <<'PY'
+          import json
+          p = 'package-lock.json'
+          d = json.load(open(p))
+          n = 0
+          for k, v in d.get('packages', {}).items():
+              u = v.get('resolved', '')
+              if 'mirrors.cloud.tencent.com/npm/' in u:
+                  v['resolved'] = u.replace(
+                      'http://mirrors.cloud.tencent.com/npm/',
+                      'https://registry.npmjs.org/').replace(
+                      'https://mirrors.cloud.tencent.com/npm/',
+                      'https://registry.npmjs.org/')
+                  n += 1
+          json.dump(d, open(p, 'w'), indent=2)
+          print('rewrote', n, 'resolved URLs')
+          PY
+          grep -c 'registry.npmjs.org' package-lock.json
+
+      - name: npm ci (official registry reachable here)
         working-directory: remotion-demo
         run: npm ci --no-audit --no-fund
 
@@ -38,7 +56,7 @@ jobs:
           npx remotion render CrowDrinksWater out/crow.mp4 \
             --codec=h264 --gl=swiftshader --log=info
 
-      - name: Write video + meta back into repo
+      - name: Write video + metadata back into repo
         run: |
           mkdir -p rendered
           cp remotion-demo/out/crow.mp4 "rendered/乌鸦喝水-新编-Remotion原生版.mp4"
