@@ -37,6 +37,9 @@ export const Caption: React.FC<{
           flexDirection: 'column',
           alignItems: 'center',
           gap: 18,
+          padding: '14px 0 18px',
+          background:
+            'linear-gradient(90deg, transparent 0%, rgba(3,10,24,0.55) 22%, rgba(3,10,24,0.55) 78%, transparent 100%)',
           opacity: exitOpacity,
           transform: `translateY(${outY}px)`,
         }}
@@ -62,7 +65,7 @@ export const Caption: React.FC<{
                 key={i}
                 style={{
                   display: 'inline-block',
-                  fontSize: 52,
+                  fontSize: 60,
                   fontWeight: 700,
                   color: mixColor(C.white, C.cyan, i / Math.max(1, chars.length)),
                   opacity: p,
