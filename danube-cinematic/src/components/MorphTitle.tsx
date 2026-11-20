@@ -46,7 +46,7 @@ const PhraseLayer: React.FC<{
             cursor += w;
             const reused = !isFirst && prev[i] === ch;
             const p = cascade(frame, i, STAGGER.char, reused ? 'gentle' : 'bounce');
-            const entranceOpacity = ip(frame, [i * STAGGER.char, i * STAGGER.char + 9], [0, 1]);
+            const entranceOpacity = ip(frame, [i * STAGGER.char, i * STAGGER.char + 6], [0, 1]);
             const over = Math.max(0, frame - (entrance + hold));
             const exitOpacity = isLast ? 1 : ip(over, [0, exit], [1, 0]);
             const outY = isLast ? 0 : -exitDrift(over, 0.42);
@@ -70,7 +70,7 @@ const PhraseLayer: React.FC<{
                   fontWeight: 800,
                   lineHeight: 1.15,
                   color,
-                  opacity: entranceOpacity * exitOpacity * (0.25 + 0.75 * p),
+                  opacity: entranceOpacity * exitOpacity * (0.42 + 0.58 * p),
                   transform: `translateY(${lift + outY}px) rotate(${rot}deg) scale(${0.82 + 0.18 * p})`,
                   textShadow: `0 0 ${18 + 26 * p}px rgba(127,227,255,0.55), ${trail * -8}px ${trail * 6}px 0 rgba(240,198,116,${trail})`,
                   filter: `blur(${(1 - p) * 3}px)`,
