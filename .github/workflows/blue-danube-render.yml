@@ -32,9 +32,19 @@ jobs:
           cp blue-danube-overrides/mirror-offset.json    blue-danube-viz/props/mirror-offset.json
           ls -lh blue-danube-viz/public/ blue-danube-viz/props/
 
-      # 本地沙盒连不上 wikimedia.org，交给 runner 取真实录音
+      # 本地沙盒连不上 wikimedia.org，交给 runner 取真实录音。
+      # 上次已把 PD 录音写回仓库，优先复用，避免 Commons 429 限流。
       - name: Fetch public-domain recording
-        run: python3 blue-danube-overrides/fetch_audio.py blue-danube-viz/public/blue-danube.mp3
+        run: |
+          mkdir -p rendered/blue-danube
+          SRC=rendered/blue-danube/blue-danube-source.mp3
+          if [ -f "$SRC" ] && [ "$(stat -c%s "$SRC")" -gt 500000 ]; then
+            echo "复用仓库里已取得的 PD 录音 ($(stat -c%s "$SRC") B)"
+            cp "$SRC" blue-danube-viz/public/blue-danube.mp3
+          else
+            python3 blue-danube-overrides/fetch_audio.py blue-danube-viz/public/blue-danube.mp3
+          fi
+          ls -lh blue-danube-viz/public/blue-danube.mp3
 
       - name: Save source audio for attribution
         run: |
