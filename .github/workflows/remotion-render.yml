@@ -18,6 +18,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: remotion-demo/package-lock.json
 
+      # ubuntu-latest 默认没有中文字体，不装字幕全是豆腐块
+      - name: Install CJK fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-wqy-microhei
+          fc-cache -fv > /dev/null 2>&1 || true
+          fc-match "Noto Sans CJK SC"
+
       # 本地生成 lock 时用的是镜像，runner 上改回 npm 官方源
       - name: Redirect lockfile to registry.npmjs.org
         working-directory: remotion-demo
