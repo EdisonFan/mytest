@@ -21,7 +21,7 @@ export const Cover: React.FC<{readonly durationInFrames: number}> = ({durationIn
     <AbsoluteFill style={{transform: `translate(${sx}px, ${sy}px)`}}>
       {/* Ken Burns 封面，压暗做背景 */}
       <AbsoluteFill style={{opacity: 0.42}}>
-        <KenBurns src={staticFile('blue-danube-cover.jpeg')} durationInFrames={durationInFrames} from={1.1} to={1.24} />
+        <KenBurns src={staticFile('blue-danube-cover-clean.jpeg')} durationInFrames={durationInFrames} from={1.1} to={1.24} />
       </AbsoluteFill>
       <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(3,10,24,0.55), rgba(3,10,24,0.86))'}} />
 
