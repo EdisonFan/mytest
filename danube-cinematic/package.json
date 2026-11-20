@@ -1,0 +1,29 @@
+{
+  "name": "danube-cinematic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Complex Remotion motion-graphics film driven by a real 1936 public-domain Blue Danube recording.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "lint": "tsc"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.545",
+    "@remotion/media": "4.0.545",
+    "@remotion/media-utils": "4.0.545",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.545",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/web": "0.0.166",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  }
+}
