@@ -59,7 +59,7 @@ export const DanubeFilm: React.FC<FilmProps> = ({
               {i === 0 ? (
                 <>
                   <Starfield frame={frame} />
-                  <MorphTitle phrases={titlePhrases} from={6} fontSize={112} />
+                  <MorphTitle phrases={titlePhrases} from={0} fontSize={112} />
                 </>
               ) : null}
               {i === 1 ? <SpectrumRing frame={frame} start={sc.from} /> : null}
