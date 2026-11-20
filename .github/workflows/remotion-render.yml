@@ -1,0 +1,53 @@
+name: Render Remotion Demo (npm ci on runner)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'remotion-demo/**'
+      - '.github/workflows/remotion-render.yml'
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: remotion-demo/package-lock.json
+
+      - name: npm ci (registry.npmjs.org is reachable here)
+        working-directory: remotion-demo
+        run: npm ci --no-audit --no-fund
+
+      - name: Ensure Chrome Headless Shell
+        working-directory: remotion-demo
+        run: npx remotion browser ensure
+
+      - name: Render with native Remotion CLI
+        working-directory: remotion-demo
+        run: |
+          mkdir -p out
+          npx remotion render CrowDrinksWater out/crow.mp4 \
+            --codec=h264 --gl=swiftshader --log=info
+
+      - name: Write video + meta back into repo
+        run: |
+          mkdir -p rendered
+          cp remotion-demo/out/crow.mp4 "rendered/乌鸦喝水-新编-Remotion原生版.mp4"
+          ffprobe -v error -show_entries format=duration,size \
+            -show_entries stream=width,height,r_frame_rate,codec_name \
+            -of default=noprint_wrappers=1 remotion-demo/out/crow.mp4 > rendered/ffprobe.txt || true
+          date -u +'%Y-%m-%dT%H:%M:%SZ' > rendered/rendered_at.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add rendered/
+          git commit -m "Render Remotion demo via native CLI [skip ci]" || echo "no changes"
+          git push
