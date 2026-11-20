@@ -53,6 +53,23 @@ jobs:
         working-directory: remotion-demo
         run: npm ci --no-audit --no-fund
 
+      - name: Add audio-visualization helper (not in lock, runner can reach npmjs)
+        working-directory: remotion-demo
+        run: npm install --no-save --no-audit --no-fund @remotion/media-utils@4.0.544
+
+      - name: Place TTS narration into public/
+        run: |
+          mkdir -p remotion-demo/public
+          if [ -f tts-output/narration.m4a ]; then
+            cp tts-output/narration.m4a remotion-demo/public/narration.m4a
+            echo "using real TTS narration"
+          else
+            ffmpeg -y -loglevel error -f lavfi -i anullsrc=r=24000:cl=mono \
+              -t 60 -c:a aac -b:a 64k remotion-demo/public/narration.m4a
+            echo "fallback: silent 60s track"
+          fi
+          ls -lh remotion-demo/public/narration.m4a
+
       - name: Ensure Chrome Headless Shell
         working-directory: remotion-demo
         run: npx remotion browser ensure
