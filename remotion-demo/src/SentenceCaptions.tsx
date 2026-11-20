@@ -59,15 +59,16 @@ export const SentenceCaptions: React.FC<{
             easing: HOUSE_EASE,
           });
           const isPunct = "，。：；！？—".includes(ch);
+          const isHighlight = emphasis && i >= highlightFrom;
           const y = (1 - p) * 28 - (isPunct ? p * 8 : 0);
-          const s = (0.78 + 0.22 * p) * (i >= highlightFrom ? 1.12 : 1);
+          const s = (0.78 + 0.22 * p) * (isHighlight ? 1.12 : 1);
           return (
             <span
               key={i}
               style={{
                 display: "inline-block",
                 transform: `translateY(${y}px) scale(${s})`,
-                color: i >= highlightFrom ? "#D65A4A" : undefined,
+                color: isHighlight ? "#D65A4A" : undefined,
               }}
             >
               {ch}
