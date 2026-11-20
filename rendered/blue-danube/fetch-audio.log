@@ -1,0 +1,16 @@
+=== 源 1: Wikimedia Commons API ===
+  File:"An der schönen, blauen Donau" performed by the U.S.Mar... -> 未解析到 URL
+  File:"An der schönen, blauen Donau", performed by the US Mar... -> https://upload.wikimedia.org/wikipedia/commons/d/de/%22An_der_sch%C3%B6nen%2C_blauen_Donau%22%2C_performed_by_the_US_Marine_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  尝试失败: HTTPError: HTTP Error 429: Too many requests. Please contact the Wikimedia SRE team at noc@wikimedia.org and refer to this message. (daab851)
+  File:"An der schönen, blauen Donau" performed by the US Mari... -> https://upload.wikimedia.org/wikipedia/commons/b/b1/%22An_der_sch%C3%B6nen%2C_blauen_Donau%22_performed_by_the_US_Marine_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  尝试失败: HTTPError: HTTP Error 429: Too many requests. Please contact the Wikimedia SRE team at noc@wikimedia.org and refer to this message. (daab851)
+  File:"An der schönen, blauen Donau" performed by the U.S. Ma... -> https://upload.wikimedia.org/wikipedia/commons/d/d4/%22An_der_sch%C3%B6nen%2C_blauen_Donau%22_performed_by_the_U.S._Marine_Band.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  尝试失败: HTTPError: HTTP Error 429: Too many requests. Please contact the Wikimedia SRE team at noc@wikimedia.org and refer to this message. (daab851)
+=== 源 2: Commons Special:FilePath ===
+  GET https://commons.wikimedia.org/wiki/Special:FilePath/%22An%20der%20sch%C3%B6nen%2C%20blauen%20Donau%22%20performed%20by%2
+  尝试失败: HTTPError: HTTP Error 404: Not Found
+  GET https://commons.wikimedia.org/wiki/Special:FilePath/%22An%20der%20sch%C3%B6nen%2C%20blauen%20Donau%22%2C%20performed%20b
+  尝试失败: HTTPError: HTTP Error 429: Too many requests. Please contact the Wikimedia SRE team at noc@wikimedia.org and refer to this message. (daab851)
+=== 源 3: archive.org (Public Domain Mark 1.0) ===
+  AnDerSchnemBlauenDonau: mp3 候选 ['An_der_schnem_blauen_Donau.mp3']
+OK  archive.org/AnDerSchnemBlauenDonau/An_der_schnem_blauen_Donau.mp3  ->  blue-danube-viz/public/blue-danube.mp3  (2,594,842 B)
