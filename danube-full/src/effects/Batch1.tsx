@@ -201,7 +201,7 @@ export const FxPulseRings: React.FC<FxProps> = ({frame, duration, audio}) => {
       y: cy + Math.sin(a + frame / 200) * r * 0.6 - ((frame * 0.9 + i * 31) % 110),
       glyph: i % 3 === 0 ? '♫' : '♪',
       size: 22 + (i % 5) * 7,
-      op: 0.16 + 0.6 * audio.treble,
+      op: 0.48 + 0.45 * audio.treble,
     };
   });
   return (
@@ -210,7 +210,7 @@ export const FxPulseRings: React.FC<FxProps> = ({frame, duration, audio}) => {
         {rings.map((R) => (
           <g key={R.i} transform={`translate(${cx} ${cy}) scale(${R.s})`}>
             <circle r={R.r} fill="none" stroke={R.i === beat ? C.gold : C.blue}
-              strokeWidth={2 + R.pulse * 8} opacity={0.2 + R.pulse * 0.6} />
+              strokeWidth={2 + R.pulse * 8} opacity={0.38 + R.pulse * 0.6} />
             <circle r={R.r} fill="none" stroke={C.cyan} strokeWidth={1}
               opacity={0.14} strokeDasharray="2 16"
               transform={`rotate(${(frame * 0.5) % 360})`} />
