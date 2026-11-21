@@ -65,7 +65,7 @@ export const FxCardFlip: React.FC<FxProps> = ({frame, duration}) => {
 };
 
 /* 09 · 径向钟扫揭示（SVG 扇形 path） */
-export const FxClockWipe: React.FC<FxProps> = ({duration}) => {
+export const FxClockWipe: React.FC<FxProps> = ({duration, audio}) => {
   const local = useCurrentFrame();
   const {width, height} = useVideoConfig();
   const cx = width / 2;
@@ -78,14 +78,37 @@ export const FxClockWipe: React.FC<FxProps> = ({duration}) => {
     ? ''
     : `M ${cx} ${cy} L ${cx} ${cy - R} A ${R} ${R} 0 ${large} 1 ${cx + Math.cos(a) * R} ${cy + Math.sin(a) * R} Z`;
   return (
-    <AbsoluteFill>
+    <AbsoluteFill style={{fontFamily: FONT_FAMILY}}>
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        {/* 底层：同心刻度环 + 12 刻度，避免这一幕只有一根扫线 */}
+        {[170, 260, 360, 460].map((r, k) => (
+          <circle key={k} cx={cx} cy={cy} r={r} fill="none"
+            stroke={k % 2 ? C.gold : C.cyan} strokeWidth={1.4}
+            opacity={0.22 + audio.bass * 0.2}
+            strokeDasharray={k % 2 ? '3 10' : undefined} />
+        ))}
+        {Array.from({length: 12}, (_, i) => {
+          const a = (i * 30 - 90) * Math.PI / 180;
+          return (
+            <line key={i}
+              x1={cx + Math.cos(a) * 440} y1={cy + Math.sin(a) * 440}
+              x2={cx + Math.cos(a) * 470} y2={cy + Math.sin(a) * 470}
+              stroke={i % 3 === 0 ? C.gold : C.cyan} strokeWidth={i % 3 === 0 ? 4 : 2}
+              opacity={0.55} />
+          );
+        })}
         {d ? <path d={d} fill="rgba(58,160,255,0.14)" stroke={C.cyan} strokeWidth={2} opacity={0.85} /> : null}
         {[0, 60, 120, 180, 240, 300].map((deg) => {
           const r = (deg - 90) * Math.PI / 180;
           return <line key={deg} x1={cx} y1={cy} x2={cx + Math.cos(r) * R} y2={cy + Math.sin(r) * R}
             stroke={C.cyan} strokeWidth={1} opacity={0.1} />;
         })}
+        <text x={cx} y={cy + 46} fill={C.cream} fontSize={148} fontWeight={800}
+          textAnchor="middle" fontFamily={FONT_FAMILY} opacity={0.9}>314</text>
+        <text x={cx} y={cy + 96} fill={C.gold} fontSize={20}
+          textAnchor="middle" fontFamily={FONT_FAMILY} letterSpacing="0.4em" opacity={0.75}>
+          CLOCK WIPE · RADIAL SWEEP
+        </text>
       </svg>
     </AbsoluteFill>
   );
