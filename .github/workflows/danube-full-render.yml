@@ -21,9 +21,11 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install deps
+      - name: Install deps (+ static ffmpeg for lossless segmentation)
         working-directory: danube-full
-        run: npm i --no-audit --no-fund 2>&1 | tee ../npm-install.log
+        run: |
+          npm i --no-audit --no-fund --no-save ffmpeg-static 2>&1 | tee ../npm-install.log
+          node -e "console.log('ffmpeg:', require('ffmpeg-static'))"
 
       - name: Typecheck (diagnostics)
         working-directory: danube-full
@@ -44,7 +46,8 @@ jobs:
           mkdir -p out
           npx remotion render FullDanube out/01-full-177s.mp4 \
             --codec=h264 --gl=swiftshader --log=info 2>&1 | tee ../render-full.log
-          ls -lh out/
+          ls -lh out/01-full-177s.mp4
+          stat -c 'MAIN_SIZE=%s' out/01-full-177s.mp4 | tee ../main-size.txt
 
       # 变体样片：只渲前 10 秒，验证 --props 参数化生效即可，不阻塞交付
       - name: Render 10s props variant
@@ -55,20 +58,45 @@ jobs:
             --codec=h264 --gl=swiftshader --log=info 2>&1 | tee ../render-variant.log || true
           ls -lh out/
 
+      # 关键：GitHub 单文件硬上限 100MB。整首 1080p 成片大概率超了，
+      # 所以若 >95MB 就用 -c copy 无损切成 14 秒的 MPEG-TS 段分别推回，
+      # 本地取回后 concat 重组，画质零损失。
+      - name: Prepare outputs (size-adaptive)
+        run: |
+          mkdir -p rendered/danube-full/segments
+          MAIN=danube-full/out/01-full-177s.mp4
+          SZ=$(stat -c%s "$MAIN")
+          echo "main size = $SZ bytes" | tee rendered/danube-full/size.txt
+          if [ "$SZ" -lt 95000000 ]; then
+            echo "under 95MB -> push whole MP4"
+            cp "$MAIN" rendered/danube-full/01-full-177s.mp4
+          else
+            echo "over 95MB -> lossless TS segmentation"
+            FF=$(cd danube-full && node -e "process.stdout.write(require('ffmpeg-static'))")
+            "$FF" -hide_banner -loglevel error -i "$MAIN" \
+              -c copy -bsf:v h264_mp4toannexb \
+              -f segment -segment_time 14 -reset_timestamps 1 \
+              -segment_format mpegts \
+              rendered/danube-full/segments/seg-%03d.ts
+            ls -lh rendered/danube-full/segments/ | tee rendered/danube-full/segments.txt
+          fi
+          cp danube-full/out/02-variant-10s.mp4 rendered/danube-full/ 2>/dev/null || true
+          cp danube-full/props/*.json rendered/danube-full/ 2>/dev/null || true
+          cp npm-install.log tsc.log compositions.log render-full.log render-variant.log main-size.txt \
+             rendered/danube-full/ 2>/dev/null || true
+          echo "=== tsc (first 50 lines) ===" && head -50 tsc.log 2>/dev/null || true
+          echo "=== compositions ===" && tail -8 compositions.log 2>/dev/null || true
+          echo "=== files to push ===" && find rendered/danube-full -type f -printf '%s %p\n' | sort -n
+          # 兜底：任何意外超过 95MB 的文件都不推，避免整个 push 被拒
+          find rendered/danube-full -type f -size +95M -print -delete
+
       - name: Save outputs and all logs back to repo
         if: always()
         run: |
-          mkdir -p rendered/danube-full
-          cp danube-full/out/*.mp4 rendered/danube-full/ 2>/dev/null || true
-          cp danube-full/props/*.json rendered/danube-full/ 2>/dev/null || true
-          cp npm-install.log tsc.log compositions.log render-full.log render-variant.log \
-             rendered/danube-full/ 2>/dev/null || true
           date -u +'%Y-%m-%dT%H:%M:%SZ' > rendered/danube-full/rendered_at.txt
-          echo "=== tsc ===" && head -50 tsc.log 2>/dev/null || true
-          echo "=== compositions ===" && tail -8 compositions.log 2>/dev/null || true
-          echo "=== outputs ===" && ls -lh rendered/danube-full/
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f rendered/danube-full/
+          git diff --cached --stat | tail -30
           git commit -m "Full 177s Blue Danube film outputs [skip ci]" || echo "no changes"
           git push
