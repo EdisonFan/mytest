@@ -5,37 +5,48 @@ import {C, FONT_FAMILY} from '../theme';
 import {clamp01, easeOutCubic, ip, shake} from '../lib/motion';
 import {GOLDEN_ANGLE, h1, h2} from '../lib/hash';
 
-/* 05 · RGB 分离故障文字（确定性帧哈希，不用 Math.random） */
+/* 05 · RGB 分离故障文字（确定性帧哈希，不用 Math.random）
+ * 第一版用百分比定位切片容器，把大字推到了可视区外，抽帧时整幕几乎全黑。
+ * 改为：三层文字整体可见 + clipPath 裁出的横向撕裂带各自错位。 */
 export const FxGlitch: React.FC<FxProps> = ({frame, duration, audio}) => {
   const local = useCurrentFrame();
   const {width} = useVideoConfig();
-  const text = 'DONAU  ·  多瑙河  ·  314';
-  const decay = Math.exp(-local / 90);
+  const text = 'DONAU · 多瑙河 · 314';
+  const decay = Math.exp(-local / 130);
   const burst = audio.treble;
-  const lines = 5;
-  const slices: React.ReactNode[] = [];
-  for (let i = 0; i < lines; i++) {
-    const n = h2(Math.floor(frame / 2), i);
-    const dx = (n - 0.5) * (26 + burst * 60) * (0.3 + decay);
-    const dy = (h2(Math.floor(frame / 3), i + 40) - 0.5) * 8 * decay;
-    slices.push(
-      <div key={i} style={{
-        position: 'absolute', left: 0, top: `${i * 20}%`, width: '100%', height: '20%',
-        overflow: 'hidden', transform: `translate(${dx}px, ${dy}px)`,
-      }}>
-        <div style={{
-          position: 'absolute', top: `-${i * 20}%`, height: '500%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 104, fontWeight: 900, whiteSpace: 'nowrap',
-          color: i % 2 === 0 ? C.cream : C.cyan,
-          textShadow: `${3 + burst * 10}px 0 ${C.blue}, ${-3 - burst * 10}px 0 ${C.amber}`,
-        }}>{text}</div>
-      </div>,
-    );
-  }
+  const shift = 3 + burst * 11 + decay * 6;
+
+  const base: React.CSSProperties = {
+    position: 'absolute', inset: 0, display: 'flex',
+    alignItems: 'center', justifyContent: 'center',
+    fontSize: 112, fontWeight: 900, whiteSpace: 'nowrap',
+    letterSpacing: '0.04em',
+  };
+
   return (
-    <AbsoluteFill style={{fontFamily: FONT_FAMILY, justifyContent: 'center', alignItems: 'center'}}>
-      <div style={{position: 'relative', width, height: 220}}>{slices}</div>
+    <AbsoluteFill style={{fontFamily: FONT_FAMILY}}>
+      <div style={{position: 'absolute', inset: 0}}>
+        {/* 底层：三层 RGB 分离，文字始终完整可读 */}
+        <div style={{...base, color: 'rgba(255,70,70,0.8)', transform: `translateX(${-shift}px)`}}>{text}</div>
+        <div style={{...base, color: 'rgba(70,150,255,0.8)', transform: `translateX(${shift}px)`}}>{text}</div>
+        <div style={{...base, color: C.cream, textShadow: `0 0 40px rgba(58,160,255,0.6)`}}>{text}</div>
+
+        {/* 撕裂带：用 clipPath 裁出横条并逐条错位，确定性帧哈希驱动 */}
+        {Array.from({length: 8}, (_, i) => {
+          const n = h2(Math.floor(frame / 2), i);
+          const dx = (n - 0.5) * (50 + burst * 90) * (0.35 + decay);
+          const top = i * 12.5;
+          return (
+            <div key={i} style={{
+              ...base, color: i % 2 ? C.cyan : C.amber,
+              clipPath: `inset(${top}% 0 ${100 - top - 12.5}% 0)`,
+              transform: `translateX(${dx}px)`,
+              opacity: 0.35 + burst * 0.45,
+            }}>{text}</div>
+          );
+        })}
+      </div>
+
       {/* 扫描撕裂线 */}
       {Array.from({length: 7}, (_, i) => {
         const y = h1(i) * 100;
@@ -46,8 +57,9 @@ export const FxGlitch: React.FC<FxProps> = ({frame, duration, audio}) => {
         }} />;
       })}
       <div style={{
-        position: 'absolute', bottom: 150, fontSize: 26, letterSpacing: '0.4em',
-        color: C.gold, opacity: ip(local, [0, 18], [0, 0.8]),
+        position: 'absolute', bottom: 150, left: 0, right: 0, textAlign: 'center',
+        fontSize: 26, letterSpacing: '0.4em', color: C.gold,
+        opacity: ip(local, [0, 18], [0, 0.8]),
       }}>SIGNAL / DECODE / 1866</div>
     </AbsoluteFill>
   );
