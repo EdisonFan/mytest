@@ -21,11 +21,9 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install deps (+ static ffmpeg for lossless segmentation)
+      - name: Install deps
         working-directory: danube-full
-        run: |
-          npm i --no-audit --no-fund --no-save ffmpeg-static 2>&1 | tee ../npm-install.log
-          node -e "console.log('ffmpeg:', require('ffmpeg-static'))"
+        run: npm i --no-audit --no-fund 2>&1 | tee ../npm-install.log
 
       - name: Typecheck (diagnostics)
         working-directory: danube-full
@@ -39,13 +37,16 @@ jobs:
         working-directory: danube-full
         run: npx remotion compositions src/index.ts > ../compositions.log 2>&1 || true
 
-      # 主片：整首 177 秒 / 5310 帧，必须成功
-      - name: Render full 177s film
+      # 关键改动：默认 CRF 18 渲出 114.6MB，超过 GitHub 单文件 100MB 上限。
+      # 第一版用「无损 TS 分段 + 本地 concat」绕开，但 AAC 时间戳在段边界累积
+      # 漂移（0ms → -395ms），音轨后半段相关性崩到 0.05。
+      # 改为从源头用 --crf=24 控体积：完整单 MP4、音轨零拼接、画质几乎无损。
+      - name: Render full 177s film (CRF 24, single file < 95MB)
         working-directory: danube-full
         run: |
           mkdir -p out
           npx remotion render FullDanube out/01-full-177s.mp4 \
-            --codec=h264 --gl=swiftshader --log=info 2>&1 | tee ../render-full.log
+            --codec=h264 --crf=24 --gl=swiftshader --log=info 2>&1 | tee ../render-full.log
           ls -lh out/01-full-177s.mp4
           stat -c 'MAIN_SIZE=%s' out/01-full-177s.mp4 | tee ../main-size.txt
 
@@ -55,31 +56,20 @@ jobs:
         run: |
           npx remotion render FullDanube out/02-variant-10s.mp4 \
             --props=props/variant.json --frames=0-299 \
-            --codec=h264 --gl=swiftshader --log=info 2>&1 | tee ../render-variant.log || true
+            --codec=h264 --crf=24 --gl=swiftshader --log=info 2>&1 | tee ../render-variant.log || true
           ls -lh out/
 
-      # 关键：GitHub 单文件硬上限 100MB。整首 1080p 成片大概率超了，
-      # 所以若 >95MB 就用 -c copy 无损切成 14 秒的 MPEG-TS 段分别推回，
-      # 本地取回后 concat 重组，画质零损失。
-      - name: Prepare outputs (size-adaptive)
+      - name: Prepare outputs (single-file, no concatenation)
         run: |
-          mkdir -p rendered/danube-full/segments
+          rm -rf rendered/danube-full && mkdir -p rendered/danube-full
           MAIN=danube-full/out/01-full-177s.mp4
           SZ=$(stat -c%s "$MAIN")
           echo "main size = $SZ bytes" | tee rendered/danube-full/size.txt
-          if [ "$SZ" -lt 95000000 ]; then
-            echo "under 95MB -> push whole MP4"
-            cp "$MAIN" rendered/danube-full/01-full-177s.mp4
-          else
-            echo "over 95MB -> lossless TS segmentation"
-            FF=$(cd danube-full && node -e "process.stdout.write(require('ffmpeg-static'))")
-            "$FF" -hide_banner -loglevel error -i "$MAIN" \
-              -c copy -bsf:v h264_mp4toannexb \
-              -f segment -segment_time 14 -reset_timestamps 1 \
-              -segment_format mpegts \
-              rendered/danube-full/segments/seg-%03d.ts
-            ls -lh rendered/danube-full/segments/ | tee rendered/danube-full/segments.txt
+          if [ "$SZ" -ge 95000000 ]; then
+            echo "unexpected: still >=95MB, aborting rather than shipping a broken concat" >&2
+            exit 1
           fi
+          cp "$MAIN" rendered/danube-full/01-full-177s.mp4
           cp danube-full/out/02-variant-10s.mp4 rendered/danube-full/ 2>/dev/null || true
           cp danube-full/props/*.json rendered/danube-full/ 2>/dev/null || true
           cp npm-install.log tsc.log compositions.log render-full.log render-variant.log main-size.txt \
@@ -87,8 +77,6 @@ jobs:
           echo "=== tsc (first 50 lines) ===" && head -50 tsc.log 2>/dev/null || true
           echo "=== compositions ===" && tail -8 compositions.log 2>/dev/null || true
           echo "=== files to push ===" && find rendered/danube-full -type f -printf '%s %p\n' | sort -n
-          # 兜底：任何意外超过 95MB 的文件都不推，避免整个 push 被拒
-          find rendered/danube-full -type f -size +95M -print -delete
 
       - name: Save outputs and all logs back to repo
         if: always()
@@ -98,5 +86,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f rendered/danube-full/
           git diff --cached --stat | tail -30
-          git commit -m "Full 177s Blue Danube film outputs [skip ci]" || echo "no changes"
+          git commit -m "Full 177s Blue Danube film (CRF24 single file) [skip ci]" || echo "no changes"
           git push
