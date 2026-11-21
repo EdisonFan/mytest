@@ -1,1 +1,1 @@
-main size = 114565965 bytes
+main size = 40688780 bytes

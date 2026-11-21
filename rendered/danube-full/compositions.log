@@ -1,13 +1,13 @@
 Bundling code        [34m━[39m[2m╺━━━━━━━━━━━━━━━━[22m 8%
-Bundling code        [34m━━━━━[39m[2m╺━━━━━━━━━━━━[22m 28%
-Bundling code        [34m━━━━━━━━━━━╸[39m[2m━━━━━━[22m 64%
-Bundling code        [34m━━━━━━━━━━━━╸[39m[2m━━━━━[22m 70%
-Bundling code        [34m━━━━━━━━━━━━━╸[39m[2m━━━━[22m 75%
+Bundling code        [34m━━━╸[39m[2m━━━━━━━━━━━━━━[22m 21%
+Bundling code        [34m━━━━━━━━━━━[39m[2m╺━━━━━━[22m 64%
+Bundling code        [34m━━━━━━━━━━━━[39m[2m╺━━━━━[22m 69%
+Bundling code        [34m━━━━━━━━━━━━━[39m[2m╺━━━━[22m 75%
 Bundling code        [34m━━━━━━━━━━━━━━[39m[2m╺━━━[22m 81%
 Bundling code        [34m━━━━━━━━━━━━━━━╸[39m[2m━━[22m 87%
 Bundling code        [34m━━━━━━━━━━━━━━━━╸[39m[2m━[22m 93%
 Bundling code        [34m━━━━━━━━━━━━━━━━━━[39m 100%
-Bundled code         [34m━━━━━━━━━━━━━━━━━━[39m [90m703ms[39m
+Bundled code         [34m━━━━━━━━━━━━━━━━━━[39m [90m548ms[39m
 ⚡️ Cached bundle. Subsequent renders will be faster.
 
 The following compositions are available:
