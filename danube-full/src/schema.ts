@@ -14,7 +14,7 @@ export const defaultFullProps: FullProps = {
   titlePhrases: [
     '蓝色多瑙河',
     'An der schönen blauen Donau',
-    '13 CHAPTERS · 177 SECONDS',
+    'OP. 314 · WIEN 1866',
   ],
   grainOpacity: 0.055,
   showChapterCards: true,
