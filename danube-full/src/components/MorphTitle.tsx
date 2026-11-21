@@ -104,7 +104,7 @@ export const MorphTitle: React.FC<{
             text={text}
             prev={i > 0 ? phrases[i - 1] : ''}
             duration={per}
-            fontSize={i === 0 ? fontSize : fontSize * 0.52}
+            fontSize={i === 0 ? fontSize : fontSize * 0.74}
             isFirst={i === 0}
             isLast={i === phrases.length - 1}
           />
