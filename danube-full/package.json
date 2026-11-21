@@ -1,0 +1,28 @@
+{
+  "name": "danube-full",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-length 177s Remotion motion-graphics film: 13 chapters, 30+ frame-driven effects, one audio decode.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "lint": "tsc"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.545",
+    "@remotion/media": "4.0.545",
+    "@remotion/media-utils": "4.0.545",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.545",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  }
+}
