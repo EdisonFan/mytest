@@ -1,0 +1,75 @@
+name: VoiceStudio MCP Worker PoC
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: voicestudio-poc
+  cancel-in-progress: true
+
+jobs:
+  poc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free runner disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android \
+                      /usr/local/share/boost /usr/share/swift 2>/dev/null || true
+          df -h /
+          docker version --format '{{.Server.Version}}'
+
+      - name: Pull VoiceStudio backend image
+        run: |
+          docker pull ghcr.io/debpalash/voicestudio:stable 2>&1 | tail -20
+          docker images ghcr.io/debpalash/voicestudio --format '{{.Tag}} {{.Size}}'
+
+      - name: Start backend container
+        run: |
+          KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(24))')"
+          echo "OMNI_KEY=$KEY" >> "$GITHUB_ENV"
+          mkdir -p "$GITHUB_WORKSPACE/vs-data/mcp" "$GITHUB_WORKSPACE/rendered/voicestudio-poc"
+          docker run -d --name voicestudio --restart no \
+            -p 127.0.0.1:3900:3900 \
+            -e OMNIVOICE_API_KEY="$KEY" \
+            -e OMNIVOICE_ANALYTICS_DISABLED=1 \
+            -e OMNIVOICE_DATA_DIR=/app/omnivoice_data \
+            -e OMNIVOICE_MCP_OUTPUT_MODE=both \
+            -e OMNIVOICE_MCP_BASE_PATH=/app/omnivoice_data/mcp \
+            -v "$GITHUB_WORKSPACE/vs-data:/app/omnivoice_data" \
+            ghcr.io/debpalash/voicestudio:stable
+          docker ps --format '{{.Names}} {{.Status}} {{.Ports}}'
+
+      # 每一步都把结果写进 rendered/，即使失败也不丢诊断
+      - name: Wait for /health
+        run: python3 scripts/vs_probe.py --wait 2>&1 | tee rendered/voicestudio-poc/health.log
+
+      - name: MCP + REST PoC
+        run: |
+          python3 scripts/vs_probe.py --run 2>&1 | tee rendered/voicestudio-poc/probe.log
+          echo "EXIT=${PIPESTATUS[0]}" >> rendered/voicestudio-poc/probe.log
+
+      - name: Collect container logs and outputs
+        if: always()
+        run: |
+          docker logs voicestudio > rendered/voicestudio-poc/container.log 2>&1 || true
+          tail -200 rendered/voicestudio-poc/container.log || true
+          echo "=== disk after ===" && df -h / | tail -2
+          echo "=== model cache ===" && du -sh "$GITHUB_WORKSPACE/vs-data" 2>/dev/null || true
+          echo "=== files ===" && find rendered/voicestudio-poc -type f -printf '%s %p\n' | sort -n
+          date -u +'%Y-%m-%dT%H:%M:%SZ' > rendered/voicestudio-poc/rendered_at.txt
+
+      - name: Push outputs back to repo
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f rendered/voicestudio-poc/
+          git diff --cached --stat | tail -30
+          git commit -m "VoiceStudio MCP Worker PoC results [skip ci]" || echo "no changes"
+          git push
