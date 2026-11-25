@@ -1,0 +1,4 @@
+== 等待 /health（官方验收第 1 步）==
+  -1 ConnectionResetError: [Errno 104] Connection reset by peer
+  HTTP 200: {"status":"ok","device":"cpu","engine":"omnivoice","version":"0.5.8"}
+  saved health.json (118 B)

@@ -1,0 +1,4 @@
+{
+  "status": 200,
+  "body": "{\"status\":\"ok\",\"device\":\"cpu\",\"engine\":\"omnivoice\",\"version\":\"0.5.8\"}"
+}

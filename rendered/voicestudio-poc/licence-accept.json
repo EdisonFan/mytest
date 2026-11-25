@@ -1,0 +1,5 @@
+{
+  "repo_id": "k2-fsa/OmniVoice",
+  "http": 422,
+  "response": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"fingerprint\"],\"msg\":\"Field required\",\"input\":{\"repo_id\":\"k2-fsa/OmniVoice\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"accepted\"],\"msg\":\"Field required\",\"input\":{\"repo_id\":\"k2-fsa/OmniVoice\"}}]}"
+}

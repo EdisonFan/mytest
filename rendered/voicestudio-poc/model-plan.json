@@ -1,0 +1,26 @@
+{
+  "note": "用户授权的一次性 PoC；模型落在临时 runner，不落到用户机器",
+  "candidates": [
+    {
+      "repo_id": "KittenML/kitten-tts-mini-0.8",
+      "size_gb": 0.08,
+      "license": "apache-2.0 (上游元数据)",
+      "project_flag": "unreviewed / commercial_use=false",
+      "engines": [
+        "kittentts"
+      ],
+      "capability": "8 个预置英文音色，非克隆"
+    },
+    {
+      "repo_id": "k2-fsa/OmniVoice",
+      "size_gb": 2.4,
+      "license": "见 LICENSE-NOTICE.md",
+      "project_flag": "默认引擎",
+      "engines": [
+        "omnivoice"
+      ],
+      "capability": "声音克隆 / 设计，首次 generate 自动下载"
+    }
+  ],
+  "chosen": "先让 generate_speech 走官方默认路径（自动下载 ~2.3GB OmniVoice）；失败再回退 REST"
+}

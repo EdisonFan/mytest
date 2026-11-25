@@ -1,0 +1,10 @@
+{
+  "health": true,
+  "mcp_handshake": true,
+  "audio_generated": false,
+  "audio_files": [],
+  "runner": {
+    "os": "Linux",
+    "arch": "x86_64"
+  }
+}

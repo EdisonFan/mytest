@@ -1,0 +1,29 @@
+{
+  "http": 200,
+  "session_id": true,
+  "response": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+      "protocolVersion": "2025-06-18",
+      "capabilities": {
+        "experimental": {},
+        "prompts": {
+          "listChanged": false
+        },
+        "resources": {
+          "subscribe": false,
+          "listChanged": false
+        },
+        "tools": {
+          "listChanged": false
+        }
+      },
+      "serverInfo": {
+        "name": "VoiceStudio",
+        "version": "1.30.0"
+      },
+      "instructions": "AI-agent interface for VoiceStudio — voice cloning, voice design, and video dubbing in 646 languages."
+    }
+  }
+}

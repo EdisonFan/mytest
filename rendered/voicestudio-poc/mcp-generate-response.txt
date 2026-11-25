@@ -1,0 +1,3 @@
+event: message
+data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"Error executing tool generate_speech: VoiceStudio returned HTTP 403 for POST /generate: Licence not accepted for k2-fsa/OmniVoice, eustlb/higgs-audio-v2-tokenizer. Review and accept it in Model Catalogue."}],"isError":true}}
+

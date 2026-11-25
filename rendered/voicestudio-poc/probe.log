@@ -1,0 +1,44 @@
+== 等待 /health（官方验收第 1 步）==
+  HTTP 200: {"status":"ok","device":"cpu","engine":"omnivoice","version":"0.5.8"}
+  saved health.json (118 B)
+== /openapi.json（官方验收第 2 步：发现真实契约）==
+  HTTP 200, 306,037 B
+  saved openapi.json (306,264 B)
+  saved openapi-paths.json (1,439 B)
+  320 条路由，其中 40 条与本任务相关
+== 发现 voices / models ==
+  GET /v1/audio/voices -> HTTP 200, 51,771 B
+  saved discover-v1_audio_voices.json (13,348 B)
+  GET /v1/models -> HTTP 200, 1,392 B
+  saved discover-v1_models.json (1,649 B)
+  GET /models -> HTTP 200, 92,415 B
+  saved discover-models.json (13,016 B)
+== MCP streamable-HTTP 握手 ==
+  initialize -> HTTP 200
+  session-id: 有  serverInfo: {"name": "VoiceStudio", "version": "1.30.0"}
+  saved mcp-initialize.json (653 B)
+  tools/list -> HTTP 200
+  发现 9 个工具: ['generate_speech', 'list_voices', 'list_personalities', 'list_languages', 'transcribe', 'check_health', 'clone_voice', 'describe_voice', 'design_voice']
+  saved mcp-tools.json (3,544 B)
+  MCP check_health -> HTTP 200: event: message
+data: {"jsonrpc":"2.0","id":9,"result":{"content":[{"type":"text","text":"{\"status\": \"ok\", \"device\": \"cpu\", \"engine\": \"omnivoice\", \"version\": \"0.5.8\"}"}],"structuredContent":{"result":"{\"status\": \"ok\", \"device\": \"cpu\", \"engine\": \"omnivoice\", \"version\": \
+  saved mcp-check-health.txt (333 B)
+  saved model-plan.json (810 B)
+== MCP tools/call: generate_speech ==
+  generate_speech -> HTTP 200, 响应 318 B
+  saved mcp-generate-response.txt (318 B)
+  工具返回错误: {"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "Error executing tool generate_speech: VoiceStudio returned HTTP 403 for POST /generate: Licence not accepted for k2-fsa/OmniVoice, eustlb/higgs-audio-v2-tokenizer. Review and accept it in Model Catalogue."}], "isError": true}}
+  MCP 生成失败，检查是否卡在模型许可接受
+== 尝试接受模型许可: k2-fsa/OmniVoice ==
+  accept -> HTTP 422: {"detail":[{"type":"missing","loc":["body","fingerprint"],"msg":"Field required","input":{"repo_id":"k2-fsa/OmniVoice"}},{"type":"missing","loc":["body","accepted"],"msg":"Field required","input":{"repo_id":"k2-fsa/OmniVoice"}}]}
+  saved licence-accept.json (339 B)
+== MCP tools/call: generate_speech ==
+  generate_speech -> HTTP 200, 响应 318 B
+  saved mcp-generate-response.txt (318 B)
+  工具返回错误: {"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "Error executing tool generate_speech: VoiceStudio returned HTTP 403 for POST /generate: Licence not accepted for k2-fsa/OmniVoice, eustlb/higgs-audio-v2-tokenizer. Review and accept it in Model Catalogue."}], "isError": true}}
+== 回退：REST POST /v1/audio/speech ==
+  REST -> HTTP 403, 786 B, content-type=
+  saved rest-generate-response.txt (795 B)
+  saved summary.json (153 B)
+== 汇总 =={"health": true, "mcp_handshake": true, "audio_generated": false, "audio_files": [], "runner": {"os": "Linux", "arch": "x86_64"}}
+EXIT=2
