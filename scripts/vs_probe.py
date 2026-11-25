@@ -134,13 +134,87 @@ def mcp_handshake():
     return sess if tools else None
 
 
-def try_accept_licence(repo_id):
-    """模型许可未接受时显式接受（仅限本次非商用 PoC，记录在日志里）。"""
-    note(f"== 尝试接受模型许可: {repo_id} ==")
-    st, raw, _ = call("POST", "/models/licenses/accept", {"repo_id": repo_id}, timeout=60)
-    note(f"  accept -> HTTP {st}: {raw[:300]}")
-    save("licence-accept.json", {"repo_id": repo_id, "http": st, "response": raw[:2000]})
-    return st in (200, 201, 204)
+def fingerprint_for(repo_id):
+    """AcceptRequest 要求 v2:<64hex>，从 acceptance / details 端点取当前条款指纹。"""
+    for path in (f"/models/licenses/acceptance/{repo_id}",
+                 f"/models/licenses/details/{repo_id}"):
+        st, raw, _ = call("GET", path, timeout=60)
+        if st == 200:
+            try:
+                o = json.loads(raw)
+                fp = o.get("fingerprint") or o.get("current", {}).get("fingerprint")
+                if fp:
+                    return fp, o
+            except Exception:
+                pass
+    return None, {}
+
+
+def accept_licences(repo_ids):
+    """显式接受模型条款。仅限用户授权的临时 runner 非商用 PoC，全程留痕。
+
+    OmniVoice 上游标注 CC-BY-NC（非商用）+ Higgs Audio 2 + Meta Llama 3，
+    正式使用请在 Model Catalogue 自行复核。
+    """
+    results = []
+    for repo_id in dict.fromkeys(repo_ids):
+        fp, detail = fingerprint_for(repo_id)
+        note(f"== 模型许可: {repo_id} ==")
+        note(f"  fingerprint: {fp}")
+        note(f"  license: {json.dumps(detail.get('license', detail.get('license_info', {})), ensure_ascii=False)[:220]}")
+        if not fp:
+            results.append({"repo_id": repo_id, "ok": False, "reason": "no fingerprint"})
+            continue
+        st, raw, _ = call("POST", "/models/licenses/accept",
+                          {"repo_id": repo_id, "fingerprint": fp, "accepted": True},
+                          timeout=60)
+        note(f"  accept -> HTTP {st}: {raw[:240]}")
+        results.append({"repo_id": repo_id, "ok": st in (200, 201, 204),
+                        "http": st, "fingerprint": fp, "response": raw[:1200]})
+    save("licence-accept.json", {
+        "scope": "用户授权的临时 runner 非商用 PoC；不代表用户对正式环境的许可决定",
+        "results": results,
+    })
+    return all(r["ok"] for r in results) if results else False
+
+
+def repos_from_error(text):
+    """从 403 错误里抽出 'Licence not accepted for A, B' 的仓库列表。"""
+    import re
+    m = re.search(r"Licence not accepted for ([^.]+)", text, re.I)
+    if not m:
+        return ["k2-fsa/OmniVoice"]
+    return [x.strip() for x in m.group(1).split(",")
+            if re.match(r"^[\w.-]+/[\w.-]+$", x.strip())]
+
+
+def install_default_model(repo_id="k2-fsa/OmniVoice"):
+    """显式安装模型并轮询状态，官方 agent.md 第 5 步。"""
+    note(f"== POST /models/install {repo_id} ==")
+    st, raw, _ = call("POST", "/models/install", {"repo_id": repo_id}, timeout=120)
+    note(f"  HTTP {st}: {raw[:300]}")
+    save("model-install-start.json", {"http": st, "response": raw[:2000]})
+    deadline = time.time() + 1500
+    while time.time() < deadline:
+        st2, raw2, _ = call("GET", "/models/install/status", timeout=60)
+        low = raw2.lower()
+        if '"failed"' in low or '"error"' in low:
+            note(f"  install status 失败: {raw2[:400]}")
+            break
+        st3, raw3, _ = call("GET", "/models", timeout=60)
+        try:
+            models = json.loads(raw3).get("models", [])
+            hit = next((m for m in models if m.get("repo_id") == repo_id), None)
+            if hit and hit.get("installed"):
+                note(f"  ✓ installed=true, {hit.get('size_on_disk_bytes', 0):,} B on disk")
+                save("model-install-status.json", {"installed": True, "entry": hit})
+                return True
+        except Exception:
+            pass
+        note(f"  安装中… status {raw2[:160]}")
+        time.sleep(20)
+    save("model-install-status.json", {"installed": False, "last_status": raw2[:2000] if 'raw2' in dir() else ""})
+    return False
 
 
 def extract_wav(obj):
@@ -176,7 +250,7 @@ def generate_via_mcp(sess):
         "params": {"name": "generate_speech", "arguments": {
             "text": text, "format": "wav",
         }},
-    }, extra=sess, timeout=1200)
+    }, extra=sess, timeout=1800)
     note(f"  generate_speech -> HTTP {st}, 响应 {len(raw):,} B")
     save("mcp-generate-response.txt", raw[:20000], raw=True)
     if st != 200:
@@ -283,13 +357,20 @@ def run():
     })
 
     audio_ok = False
+    licences_accepted = False
+    model_installed = False
+
     if sess:
+        # 先试一次，拿回真实错误（官方要求先发现契约，不臆造 repo_id）
         audio_ok = generate_via_mcp(sess)
         if not audio_ok:
-            note("  MCP 生成失败，检查是否卡在模型许可接受")
-            low = (OUT / "mcp-generate-response.txt").read_text(encoding="utf-8", errors="replace").lower()
-            if "licen" in low or "accept" in low or "403" in low:
-                try_accept_licence("k2-fsa/OmniVoice")
+            err = (OUT / "mcp-generate-response.txt").read_text(
+                encoding="utf-8", errors="replace")
+            repos = repos_from_error(err)
+            note(f"  403 点名的仓库: {repos}")
+            licences_accepted = accept_licences(repos)
+            if licences_accepted:
+                model_installed = install_default_model("k2-fsa/OmniVoice")
                 audio_ok = generate_via_mcp(sess)
     if not audio_ok:
         audio_ok = generate_via_rest()
@@ -297,6 +378,8 @@ def run():
     summary = {
         "health": True,
         "mcp_handshake": bool(sess),
+        "licences_accepted": licences_accepted,
+        "model_installed": model_installed,
         "audio_generated": audio_ok,
         "audio_files": sorted(p.name for p in OUT.glob("*.wav")),
         "runner": {"os": os.uname().sysname, "arch": os.uname().machine},
