@@ -1,8 +1,12 @@
 {
   "health": true,
   "mcp_handshake": true,
-  "audio_generated": false,
-  "audio_files": [],
+  "licences_accepted": true,
+  "model_installed": true,
+  "audio_generated": true,
+  "audio_files": [
+    "voicestudio-mcp-speech.wav"
+  ],
   "runner": {
     "os": "Linux",
     "arch": "x86_64"

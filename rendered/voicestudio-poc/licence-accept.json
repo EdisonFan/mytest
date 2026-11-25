@@ -1,5 +1,19 @@
 {
-  "repo_id": "k2-fsa/OmniVoice",
-  "http": 422,
-  "response": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"fingerprint\"],\"msg\":\"Field required\",\"input\":{\"repo_id\":\"k2-fsa/OmniVoice\"}},{\"type\":\"missing\",\"loc\":[\"body\",\"accepted\"],\"msg\":\"Field required\",\"input\":{\"repo_id\":\"k2-fsa/OmniVoice\"}}]}"
+  "scope": "用户授权的临时 runner 非商用 PoC；不代表用户对正式环境的许可决定",
+  "results": [
+    {
+      "repo_id": "k2-fsa/OmniVoice",
+      "ok": true,
+      "http": 200,
+      "fingerprint": "v2:d938ea928581624d5732507057d8530320f638ac61426165cbd5abe67be5c9bc",
+      "response": "{\"repo_id\":\"k2-fsa/OmniVoice\",\"license\":\"CC-BY-NC (version unspecified); Higgs Audio 2; Meta Llama 3\",\"category\":\"noncommercial\",\"required\":true,\"accepted\":true,\"state\":\"accepted\",\"fingerprint\":\"v2:d938ea928581624d5732507057d8530320f638ac61426165cbd5abe67be5c9bc\",\"last_action\":{\"action\":\"accepted\",\"app_version\":\"0.5.8\",\"at\":\"2026-11-25T10:53:52+00:00\",\"fingerprint\":\"v2:d938ea928581624d5732507057d8530320f638ac61426165cbd5abe67be5c9bc\"},\"accepted_at\":\"2026-11-25T10:53:52+00:00\",\"changed_fields\":[]}"
+    },
+    {
+      "repo_id": "eustlb/higgs-audio-v2-tokenizer",
+      "ok": true,
+      "http": 200,
+      "fingerprint": "v2:6b442e435fd392f7726e7c44a30da71bba23adecaabe4c8da725cb30579ecff1",
+      "response": "{\"repo_id\":\"eustlb/higgs-audio-v2-tokenizer\",\"license\":\"NOASSERTION\",\"category\":\"unknown\",\"required\":true,\"accepted\":true,\"state\":\"accepted\",\"fingerprint\":\"v2:6b442e435fd392f7726e7c44a30da71bba23adecaabe4c8da725cb30579ecff1\",\"last_action\":{\"action\":\"accepted\",\"app_version\":\"0.5.8\",\"at\":\"2026-11-25T10:53:52+00:00\",\"fingerprint\":\"v2:6b442e435fd392f7726e7c44a30da71bba23adecaabe4c8da725cb30579ecff1\"},\"accepted_at\":\"2026-11-25T10:53:52+00:00\",\"changed_fields\":[]}"
+    }
+  ]
 }
