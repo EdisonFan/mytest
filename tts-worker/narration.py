@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""微软 Edge TTS 旁白合成 Worker（v3.1：额外保留逐段原始 MP3）。
+"""微软 Edge TTS 旁白合成 Worker（v3.2：保留逐段原始 MP3 + 科技片音色）。
 
 在 GitHub Actions runner 上执行（cwd = 仓库根目录）：
   - 逐句调用微软 TTS 生成 MP3
   - 用 imageio-ffmpeg 自带的 ffmpeg 统一转成 24kHz 单声道 WAV
-  - 纯 Python wave 模块把每句补齐/截断到 6 秒并拼接成音轨
-  - 额外把每段原始 MP3 复制到 tts-output/hebau/voice_NN.mp3
-  - 输出 tts-output/narration.m4a（失败则回退 narration.wav）
-
-依赖：edge-tts、mutagen、imageio-ffmpeg（均由 pip 安装）
+  - 纯 Python wave 模块拼接成参考音轨（外部不使用）
+  - 额外把每段原始 MP3 复制到 tts-output/ai_film/voice_NN.mp3
 """
 import asyncio
 import pathlib
@@ -24,8 +21,8 @@ LINES = (ROOT / "tts-worker" / "fable.txt").read_text(encoding="utf-8").strip().
 OUT = ROOT / "tts-output"
 OUT.mkdir(exist_ok=True)
 
-VOICE = "zh-CN-XiaoxiaoNeural"
-RATE = "-8%"
+VOICE = "zh-CN-YunjianNeural"
+RATE = "-4%"
 SEG = 6.0
 SR = 24000
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
@@ -75,7 +72,7 @@ async def main() -> None:
         else:
             pcm = pcm[:target_bytes]
         pieces.append(pcm)
-        print(f"[{i:02d}] 语音 {dur:.2f}s -> 对齐 {SEG}s  语速系数 {tempo:.2f}  {text[:18]}")
+        print(f"[{i:02d}] 语音 {dur:.2f}s -> 参考轨 {SEG}s  {text[:20]}")
 
     wav_all = OUT / "narration.wav"
     with wave.open(str(wav_all), "wb") as w:
@@ -83,7 +80,6 @@ async def main() -> None:
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes(b"".join(pieces))
-    print(f"拼接完成：{wav_all.name}  {wav_all.stat().st_size} bytes")
 
     m4a = OUT / "narration.m4a"
     try:
@@ -92,12 +88,11 @@ async def main() -> None:
              "-c:a", "aac", "-b:a", "128k", str(m4a)],
             check=True,
         )
-        print(f"AAC 封装完成：{m4a.name}  {m4a.stat().st_size} bytes")
     except subprocess.CalledProcessError as exc:
         print(f"AAC 封装失败，回退 WAV：{exc}")
 
-    # 保留逐段原始 MP3，供外部按各自镜头时间轴取用（不做 6 秒硬对齐）
-    voices = OUT / "hebau"
+    # 保留逐段原始 MP3（未变速、未裁剪），供外部按各自镜头时间轴取用
+    voices = OUT / "ai_film"
     voices.mkdir(exist_ok=True)
     for i in range(1, len(LINES) + 1):
         src = OUT / f"seg{i:02d}.mp3"
