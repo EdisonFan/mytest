@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""微软 Edge TTS 旁白合成 Worker（v3：不依赖系统 ffprobe/ffmpeg 命令）。
+"""微软 Edge TTS 旁白合成 Worker（v3.1：额外保留逐段原始 MP3）。
 
 在 GitHub Actions runner 上执行（cwd = 仓库根目录）：
   - 逐句调用微软 TTS 生成 MP3
   - 用 imageio-ffmpeg 自带的 ffmpeg 统一转成 24kHz 单声道 WAV
-  - 纯 Python wave 模块把每句补齐/截断到 6 秒并拼接成 60 秒音轨
+  - 纯 Python wave 模块把每句补齐/截断到 6 秒并拼接成音轨
+  - 额外把每段原始 MP3 复制到 tts-output/hebau/voice_NN.mp3
   - 输出 tts-output/narration.m4a（失败则回退 narration.wav）
 
 依赖：edge-tts、mutagen、imageio-ffmpeg（均由 pip 安装）
@@ -37,7 +38,7 @@ async def synth(i: int, text: str) -> pathlib.Path:
             await edge_tts.Communicate(text, VOICE, rate=RATE).save(str(p))
             if p.exists() and p.stat().st_size > 1000:
                 return p
-        except Exception as exc:  # 网络抖动 / 服务端限流
+        except Exception as exc:
             print(f"  第{i}句第{attempt + 1}次重试：{exc}")
         await asyncio.sleep(1.5)
     raise RuntimeError(f"第 {i} 句语音合成失败")
@@ -58,7 +59,7 @@ def read_pcm(p: pathlib.Path) -> bytes:
 
 
 async def main() -> None:
-    target_bytes = int(SR * SEG) * 2  # 16bit 单声道
+    target_bytes = int(SR * SEG) * 2
     pieces = []
 
     for i, text in enumerate(LINES, 1):
@@ -74,7 +75,7 @@ async def main() -> None:
         else:
             pcm = pcm[:target_bytes]
         pieces.append(pcm)
-        print(f"[{i:02d}] 语音 {dur:.2f}s → 对齐 {SEG}s  语速系数 {tempo:.2f}  {text[:18]}")
+        print(f"[{i:02d}] 语音 {dur:.2f}s -> 对齐 {SEG}s  语速系数 {tempo:.2f}  {text[:18]}")
 
     wav_all = OUT / "narration.wav"
     with wave.open(str(wav_all), "wb") as w:
@@ -95,7 +96,15 @@ async def main() -> None:
     except subprocess.CalledProcessError as exc:
         print(f"AAC 封装失败，回退 WAV：{exc}")
 
-    # 清理中间文件，避免污染仓库
+    # 保留逐段原始 MP3，供外部按各自镜头时间轴取用（不做 6 秒硬对齐）
+    voices = OUT / "hebau"
+    voices.mkdir(exist_ok=True)
+    for i in range(1, len(LINES) + 1):
+        src = OUT / f"seg{i:02d}.mp3"
+        if src.exists():
+            (voices / f"voice_{i:02d}.mp3").write_bytes(src.read_bytes())
+    print(f"逐段原始 MP3 已保留：{voices}  ({len(LINES)} 段)")
+
     for p in OUT.glob("seg*"):
         p.unlink()
     (OUT / "concat.txt").unlink(missing_ok=True)
